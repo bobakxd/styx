@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+    		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Проект Styx - {% block title %}Главная страница{% endblock %}</title>
+		<link rel="stylesheet" href="{{ url_for('.static', filename='css/main.css') }}">
+		<link rel="stylesheet" href="{{ url_for('.static', filename='css/bootstrap.min.css') }}">
+	</head>
+	<body>
+		<div class="background">
+		 	<div class="background-wrapper">
+				<div id='stars'></div>
+				<div id='stars2'></div>
+				<div id='stars3'></div>
+			</div>
+		</div>
+		<div class="container-fluid h-100 main-container">
+			<div class="row m-0 h-100 justify-content-center">
+				<nav class="navbar align-self-start p-0">
+					<div class="container-fluid p-0 navbar-container">
+						<a class="navbar-brand logo" href="/"><span class="logo-first">Проект</span> <span class="logo-second">Styx</span></a>
+					</div>
+				</nav>
+				<div class="col-md-9 col-12 p-0 align-self-center">
+					<h2 class="title fs-5 text-uppercase mb-3">Добро пожаловать в Styx</h2>
+					<div class="row">
+						<div class="col-md-9 col-12">
+							<p class="description fs-1">Веб-сервис для вычисления метрик и построения визуализаций проекта, написанного на языке C.</p>
+						</div>
+					</div>
+					<div class="button-block">
+						<a class="btn btn-outline-primary px-4 py-2 rounded-0 shadow-none" href="#" role="button">Начать пользоваться</a>
+					</div>
+				</div>
+				<div class="col-12 p-0 align-self-end">
+					<p class="copyright m-0 text-md-end test-start pb-4">Copyright © 2021, Roman Mazalov (<a href="https://gitlab.com/imspeedwagon">imspeedwagon</a>)</p>
+				</div>
+			</div>
+		</div>
+		<script src="{{ url_for('.static', filename='js/bootstrap.bundle.min.js') }}"></script>
+		<!--<script src="{{ url_for('.static', filename='js/balls.js') }}"></script>-->
+	</body>
+</html>
