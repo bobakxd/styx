@@ -1,0 +1,66 @@
+{% extends "index.html" %}
+{% block title %}Вход в систему{% endblock %}
+{% block head %}
+	{{ super() }}
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock %}
+{% block main %}
+<div class="container-fluid">
+	<div class="row justify-content-md-center">
+		<div class="col-lg-8 col-12">
+			<div class="row form-block m-4 px-md-5 px-2">
+				{% block img_block %}
+				<div class="col-md-6 col-12 mb-md-0 mb-5 px-4">
+					<figure>
+						{% block img %}<img src="{{ url_for('.static', filename='images/signin-image.jpg') }}" alt="Изображение входа">{% endblock %}
+					</figure>
+					<div class="text-center">
+						{% block link %}<a class="form-link" href="{{ url_for('.signup') }}">Создать аккаунт</a>{% endblock %}
+					</div>
+		
+				</div>
+				{% endblock %}
+				{% block form_block %}
+				<div class="col-md-6 col-12 px-4 mb-md-0 mb-5">
+					<section class="signin">
+						<h2 class="form-title">{% block form_title %}Войти в систему{% endblock %}</h2>
+						{% with messages = get_flashed_messages() %}
+							{% if messages %}
+								{% for message in messages %}
+									<div class="alert alert-danger">{{ message }}</div>
+								{% endfor %}
+							{% endif %}
+						{% endwith %}
+						<form method="POST" class="signin-form">
+							{% block form %}
+							<div class="mb-4 form-group">
+								<label for="signinCredentials" class="form-label">
+									<span class="material-icons">
+										person
+									</span>
+								</label>
+								<input type="email" class="form-control shadow-none rounded-0" id="signinCredentials" placeholder="Имя пользователя или email">
+							</div>
+							<div class="mb-4 form-group">
+								<label for="signinPassw" class="form-label">
+									<span class="material-icons">
+										lock
+									</span>
+								</label>
+								<input type="password" class="form-control shadow-none rounded-0" id="signinPassw" placeholder="Пароль">
+							</div>
+							<div class="mb-4">
+								<input type="checkbox" class="form-check-input shadow-none" id="signinRememberMe">
+				    				<label class="form-check-label" for="signinRememberMe">Запомнить меня</label>
+							</div>
+							<button type="submit" class="btn btn-primary mt-3 shadow-none">Войти</button>
+							{% endblock %}
+						</form>
+					</section>
+				</div>
+				{% endblock %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

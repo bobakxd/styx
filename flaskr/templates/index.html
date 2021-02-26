@@ -1,12 +1,15 @@
 <html>
 	<head>
+		{% block head %}
 		<meta charset="utf-8">
     		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Проект Styx - {% block title %}Главная страница{% endblock %}</title>
 		<link rel="stylesheet" href="{{ url_for('.static', filename='css/main.css') }}">
 		<link rel="stylesheet" href="{{ url_for('.static', filename='css/bootstrap.min.css') }}">
+		{% endblock %}
 	</head>
 	<body>
+		{% block main %}
 		<div class="background">
 		 	<div class="background-wrapper">
 				<div id='stars'></div>
@@ -29,7 +32,7 @@
 						</div>
 					</div>
 					<div class="button-block">
-						<a class="btn btn-outline-primary px-4 py-2 rounded-0 shadow-none" href="#" role="button">Начать пользоваться</a>
+						<a class="btn btn-outline-primary px-4 py-2 rounded-0 shadow-none" href="{{ url_for('.signin') }}" role="button">Начать пользоваться</a>
 					</div>
 				</div>
 				<div class="col-12 p-0 align-self-end">
@@ -38,6 +41,6 @@
 			</div>
 		</div>
 		<script src="{{ url_for('.static', filename='js/bootstrap.bundle.min.js') }}"></script>
-		<!--<script src="{{ url_for('.static', filename='js/balls.js') }}"></script>-->
+		{% endblock %}
 	</body>
 </html>

@@ -1,0 +1,60 @@
+{% extends "signin.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block main %}
+<div class="container-fluid">
+	<div class="row justify-content-md-center">
+		<div class="col-lg-8 col-12">
+			<div class="row form-block m-4 px-md-5 px-2">
+				{% block form_block %}
+					{{ super() }}
+				{% endblock %}
+				{% block img_block %}
+					{{ super() }}
+				{% endblock %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+{% block img %}
+<img src="{{ url_for('.static', filename='images/signup-image.jpg') }}" alt="Изображение регистрации">
+{% endblock %}
+{% block link %}
+<a class="form-link" href="{{ url_for('.signin') }}">У меня уже есть аккаунт</a>
+{% endblock %}
+{% block form_title %}Зарегистрироваться{% endblock %}
+{% block form %}
+<div class="mb-4 form-group">
+	<label for="signupUsername" class="form-label">
+		<span class="material-icons">
+			person
+		</span>
+	</label>
+	<input type="text" class="form-control shadow-none rounded-0" name="username" id="signupUsername" placeholder="Имя пользователя" value="{{ username }}">
+</div>
+<div class="mb-4 form-group">
+	<label for="signupEmail" class="form-label">
+		<span class="material-icons">
+			email
+		</span>
+	</label>
+	<input type="text" class="form-control shadow-none rounded-0" id="signupEmail" placeholder="Email адрес" name="email" value="{{ email }}">
+</div>
+<div class="mb-4 form-group">
+	<label for="signupPassw" class="form-label">
+		<span class="material-icons">
+			lock
+		</span>
+	</label>
+	<input type="password" class="form-control shadow-none rounded-0" id="signupPassw" placeholder="Пароль" name="passw">
+</div>
+<div class="mb-4 form-group">
+	<label for="signupRepeat" class="form-label">
+		<span class="material-icons">
+			lock_open
+		</span>
+	</label>
+	<input type="password" class="form-control shadow-none rounded-0" id="signupRepeat" placeholder="Повторите пароль" name="repeat">
+</div>
+<button type="submit" class="btn btn-primary mt-3 shadow-none">Зарегистрироваться</button>
+{% endblock %}

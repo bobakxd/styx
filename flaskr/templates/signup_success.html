@@ -1,0 +1,10 @@
+{% extends "signin.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block img_block %}{% endblock %}
+{% block form_block %}
+<div class="col-12 mb-5">
+	<h2 class="success-title mb-5">Вы были успешно зарегистрированы!</h2>
+	<p class="mb-3">Вы успешно прошли процедуру регистрации. Если вы хотите начать работу с системой, то перейдите по ссылке ниже.</p>
+	<a class="form-link" href="{{ url_for('.signin') }}">Войти в аккаунт</a>
+</div>
+{% endblock %}
