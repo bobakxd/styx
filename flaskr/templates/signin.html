@@ -39,7 +39,7 @@
 										person
 									</span>
 								</label>
-								<input type="email" class="form-control shadow-none rounded-0" id="signinCredentials" placeholder="Имя пользователя или email">
+								<input type="text" class="form-control shadow-none rounded-0" id="signinCredentials" placeholder="Имя пользователя или email" name="credential" value="{{ credential }}">
 							</div>
 							<div class="mb-4 form-group">
 								<label for="signinPassw" class="form-label">
@@ -47,7 +47,7 @@
 										lock
 									</span>
 								</label>
-								<input type="password" class="form-control shadow-none rounded-0" id="signinPassw" placeholder="Пароль">
+								<input type="password" class="form-control shadow-none rounded-0" id="signinPassw" placeholder="Пароль" name="passw">
 							</div>
 							<div class="mb-4">
 								<input type="checkbox" class="form-check-input shadow-none" id="signinRememberMe">
