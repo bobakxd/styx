@@ -24,13 +24,14 @@
 				<ul class="dropdown-menu dropdown-menu-sm-end" aria-labelledby="userDropdownMenuBUtton">
 					<h6 class="dropdown-header">{{ user.username }}</h6>
 					<div class="dropdown-divider"></div>
-					<li><a class="dropdown-item" href="#">Настройки</a></li>
+					<li><a class="dropdown-item" href="{{ url_for('main.user_settings', username=user.username) }}">Настройки</a></li>
 					<li><a class="dropdown-item" href="#">Выйти</a></li>
 				</ul>
 			</li>
 		</ul>
 	</div>
 </header>
+{% block content %}
 <div class="border-bottom">
 	<div class="container">
 		<section class="text-center p-4">
@@ -54,6 +55,7 @@
 		</ul>
 	</section>
 </div>
+{% endblock %}
 <div class="border-top">
 	<footer class="container text-center">
 		<p class="user-panel-copyright m-0 p-4">Copyright © 2021, Roman Mazalov (<a href="https://gitlab.com/imspeedwagon">imspeedwagon</a>)</p>

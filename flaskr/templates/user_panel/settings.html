@@ -1,0 +1,25 @@
+{% extends "user_panel/index.html" %}
+{% block title %}Настройки пользователя - {% block setting_title %}Профиль{% endblock %}{% endblock %}
+{% block content %} 
+<div class="user-panel-main-block">
+	<div class="container d-flex flex-sm-row flex-column">
+		<nav class="border-end col-12 col-sm-3">
+			<div class="list-group list-group-flush">
+				<div class="user-settings-title list-group-item pb-3">
+					<img class="user-avatar" width="38" height="38" loading="lazy" src="{{ gravatar_avatar_url(user.email, 38) }}">
+					<h2 class="fs-5 m-2">Настройки</h2>
+				</div>
+				{% block item_list %}
+				<a href="{{ url_for('main.user_settings', username=user.username) }}" class="list-group-item active">Профиль</a>
+				<a href="{{ url_for('main.user_settings_tokens', username=user.username) }}" class="list-group-item">API Токены</a>
+				{% endblock %}
+			</div>
+		</nav>
+		<div class="p-3 col-sm-9 col-12">
+			{% block settings_section %}
+			<h3>Профиль</h3>
+			{% endblock %}
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "user_panel/settings.html" %}
+{% block setting_title %}API Токены{% endblock %}
+{% block item_list %}
+<a href="{{ url_for('main.user_settings', username=user.username) }}" class="list-group-item">Профиль</a>
+<a href="{{ url_for('main.user_settings_tokens', username=user.username) }}" class="list-group-item active">API Токены</a>
+{% endblock %}
+{% block settings_section %}
+<section>
+	<h3>Личные токены доступа</h3>
+	<p>Вы можете сгенерировать личные токены доступа, которые вам необходимы для использования API Styx.</p>
+</section>
+<section>
+	<h4 class="fs-5">Добавить личный токен доступа</h3>
+</section>
+<section>
+	<h4 class="fs-5">Активные личные токены доступа</h4>
+</section>
+{% endblock %}

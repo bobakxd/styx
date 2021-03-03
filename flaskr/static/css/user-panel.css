@@ -20,3 +20,7 @@
 .user-panel-main-block {
 	background: #fff;
 }
+
+.user-settings-title img, h2 {
+	display: inline-block;
+}

@@ -41,7 +41,23 @@ def user_panel(username):
     user = User.query.filter_by(
             username=username).first()
     projects = Project.query.filter_by(user_id=user.id).all()
-    return render_template('user_panel.html', user=user, projects=projects, gravatar_avatar_url=gravatar_avatar_url)
+    return render_template('user_panel/index.html', user=user, projects=projects, gravatar_avatar_url=gravatar_avatar_url)
+
+
+@main.route('/<username>/settings')
+@login_required
+def user_settings(username):
+    user = User.query.filter_by(
+            username=username).first()
+    return render_template('user_panel/settings.html', user=user, gravatar_avatar_url=gravatar_avatar_url)
+
+
+@main.route('/<username>/settings/tokens')
+@login_required
+def user_settings_tokens(username):
+    user = User.query.filter_by(
+            username=username).first()
+    return render_template('user_panel/settings_tokens.html', user=user, gravatar_avatar_url=gravatar_avatar_url)
 
 
 @main.route('/')
