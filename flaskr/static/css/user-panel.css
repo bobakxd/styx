@@ -11,3 +11,12 @@
 .user-panel-button {
 	padding-bottom: .75rem !important;
 }
+
+.user-avatar {
+	border-radius: 50%;
+	border: 1px solid #000;
+}
+
+.user-panel-main-block {
+	background: #fff;
+}

@@ -7,7 +7,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
 import datetime
 import jwt
-from flaskr import auth
 
 db = SQLAlchemy()
 
@@ -26,6 +25,8 @@ class User(db.Model):
     #: passw_hash (*str*) - пароль пользователя, хранится как хеш SHA-256 
     #: в hex формате
     passw_hash = db.Column(db.String(512), unique=False, nullable=False) # SHA-256 пароля в hex формате
+    # registration_time (*DateTime*) - дата регистрации пользователя
+    registration_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
     def is_active(self):
         """Возвращает всегда True, т.к. все пользователи активны."""
@@ -36,12 +37,15 @@ class User(db.Model):
         return '%s<%d>' % (self.username, self.id)
 
     def is_authenticated(self):
+        from flaskr import auth
         """Возвращает признак (*bool*) того, что пользователь аутентифицирован."""
         if self.get_id() in auth.get_sessions():
             return auth.get_sessions()[self.get_id()]
         return False
 
     def set_authenticated(self, value):
+        from flaskr import auth
+        """Возвращает признак (*bool*) того, что пользователь аутентифицирован."""
         """Устанавливает признак *value* аутентификации пользователя.
 
         :param bool value: признак аутентификации

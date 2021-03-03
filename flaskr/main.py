@@ -4,6 +4,10 @@
 from flask import Blueprint
 from flask import render_template
 from flask_login import login_required
+import hashlib
+from flaskr.models import User
+from flaskr.models import Project
+import locale
 
 #: main - это Blueprint, который содержит представления данного модуля.
 #:
@@ -11,6 +15,18 @@ from flask_login import login_required
 #: шаблонов указаны корневеные (./static и ./templates).
 main = Blueprint('main', __name__, static_folder='static', 
         template_folder='templates')
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+
+def gravatar_avatar_url(email, size):
+    avatar_hash = hashlib.md5(email.lower().encode('utf-8')).hexdigest()
+    return 'https://www.gravatar.com/avatar/{hash}?d=monsterid&s={px}'\
+            .format(hash=avatar_hash, px=size)
+
+
+@main.app_template_filter()
+def date_format(value):
+    return value.strftime('%-d %B, %Y г.') 
+
 
 @main.route('/<username>')
 @login_required
@@ -22,7 +38,10 @@ def user_panel(username):
 
     :param str username: имя пользователя
     """
-    return render_template('user_panel.html', username=username)
+    user = User.query.filter_by(
+            username=username).first()
+    projects = Project.query.filter_by(user_id=user.id).all()
+    return render_template('user_panel.html', user=user, projects=projects, gravatar_avatar_url=gravatar_avatar_url)
 
 
 @main.route('/')
