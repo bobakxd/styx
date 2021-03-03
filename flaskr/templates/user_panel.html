@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+{% block title %}{{ username }}{% endblock %}
+{% block head %}
+	{{ super() }}
+	<link rel="stylesheet" href="{{ url_for('.static', filename='css/user-panel.css') }}">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+{% endblock %}
+{% block main %}
+<header class="navbar navbar-expand-sm navbar-dark bg-dark">
+	<div class="container">
+		<a class="navbar-brand" href="#">Проект Styx</a>
+		<ul class="nav navbar-nav user-panel-nav">
+			<li class="nav-item">
+				<button class="btn btn-dark user-panel-button" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Новый проект">
+					<span class="material-icons">
+						add_box
+					</span>
+				</button>
+        		</li>
+			<li class="nav-item dropdown">
+				<button class="btn btn-dark dropdown-toggle" type="button" id="userDropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+					<span class="material-icons">
+						account_box
+					</span>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-sm-end" aria-labelledby="userDropdownMenuBUtton">
+					<h6 class="dropdown-header">{{ username }}</h6>
+					<div class="dropdown-divider"></div>
+					<li><a class="dropdown-item" href="#">Настройки</a></li>
+					<li><a class="dropdown-item" href="#">Выйти</a></li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+</header>
+{% block js_includes %}
+	{{ super() }}
+{% endblock %}
+{% endblock %}

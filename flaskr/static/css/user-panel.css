@@ -1,0 +1,13 @@
+.user-panel-nav .dropdown-menu {
+	position: absolute !important;
+}
+
+.user-panel-nav .material-icons {
+	position: relative;
+	top: 4px;
+	font-size: 21px;
+}
+
+.user-panel-button {
+	padding-bottom: .75rem !important;
+}

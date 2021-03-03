@@ -40,7 +40,7 @@
 				</div>
 			</div>
 		</div>
-		<script src="{{ url_for('.static', filename='js/bootstrap.bundle.min.js') }}"></script>
+		{% block js_includes %}<script src="{{ url_for('.static', filename='js/bootstrap.bundle.min.js') }}"></script>{% endblock %}
 		{% endblock %}
 	</body>
 </html>

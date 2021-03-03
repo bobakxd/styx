@@ -22,7 +22,7 @@ def user_panel(username):
 
     :param str username: имя пользователя
     """
-    return 'Вы успешно авторизовались!'
+    return render_template('user_panel.html', username=username)
 
 
 @main.route('/')
