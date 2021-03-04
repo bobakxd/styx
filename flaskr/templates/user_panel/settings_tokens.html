@@ -47,7 +47,6 @@
 				<th scope="col">Название токена</th>
 				<th scope="col">Создан</th>
 				<th scope="col">Заканчивается</th>
-				<th scope="col"></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -56,7 +55,6 @@
 				<td>{{ t.name }}</td>
 				<td>{{ t.iat | date_format }}</td>
 				<td>{{ t.exp | date_format }}</td>
-				<td><a class="btn btn-danger" href="#">Удалить</a></td>
 			</tr>
 		{% endfor %}
 		</tbody>
