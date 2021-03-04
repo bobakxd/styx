@@ -103,6 +103,26 @@ class User(db.Model):
         return '<User %r>' % self.username
 
 
+class Token(db.Model):
+    """Модель токена, хранит свойства с информацией о веб-токене пользователя: *id*, *user_id*, *token*.
+    """
+    #: id (*int*) - идентификатор токена
+    id = db.Column(db.Integer, primary_key=True)
+    #: user_id (*int*) - идентификатор пользователя
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    #: token (*str*) - зашифрованный веб-токен в base64 формате
+    token = db.Column(db.String(8192), nullable=False)
+    #: name (*str*) - название токена
+    name = db.Column(db.String(80), nullable=False)
+    # iat (*DateTime*) - дата создания токена 
+    iat = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    # exp (*DateTime*) - дата окончания действия токена
+    exp = db.Column(db.DateTime, nullable=False)
+
+    def __repr__(self):
+        return '<Token %r [ %r ]>' % (self.id, self.token)
+
+
 class Project(db.Model):
     """Модель проект, хранит свойства с информацией о проекте пользователя
     : *id*, *user_id*, *project_name*.

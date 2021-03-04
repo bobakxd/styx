@@ -10,9 +10,56 @@
 	<p>Вы можете сгенерировать личные токены доступа, которые вам необходимы для использования API Styx.</p>
 </section>
 <section>
-	<h4 class="fs-5">Добавить личный токен доступа</h3>
+	{% if created_jwt %}
+	<div class="pt-4 border-bottom">
+		<h5 class="fs-5 mb-3">Ваш личный токен</h5>
+		<input class="mb-3 w-100"  type="text" readonly="readonly" value="{{ created_jwt }}">
+		<p>Убедитесь в том, что вы сохранили токен, у вас не будет к нему доступа позже.</p>
+	</div>
+	{% endif %}
+	<h4 class="fs-5 mt-5">Добавить личный токен доступа</h4>
+	<form method="POST" action="{{ url_for('.user_settings_tokens', username=user.username) }}" class="mt-4 mb-4">
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				{% for m in messages %}
+					<div class="alert alert-danger" role="alert">
+						{{ m }}
+					</div>
+				{% endfor %}
+			{% endif %}
+		{% endwith %}
+		<div class="form-group mb-3">
+			<label for="tokenName">Название токена</label>
+			<input type="text" class="form-control rounded-0" id="tokenName" name="token_name">
+		</div>
+		<div class="form-group mb-3">
+			<label for="expiresAt">Срок действия заканчивается в</label>
+			<input type="date" class="form-control rounded-0" id="expiresAt" name="expire_date">
+		</div>
+		<button type="submit" class="btn btn-primary">Создать токен</button>
+	</form>
 </section>
 <section>
-	<h4 class="fs-5">Активные личные токены доступа</h4>
+	<h4 class="fs-5 mt-5">Активные личные токены доступа</h4>
+	<table class="table mt-4">
+		<thead>
+			<tr>
+				<th scope="col">Название токена</th>
+				<th scope="col">Создан</th>
+				<th scope="col">Заканчивается</th>
+				<th scope="col"></th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for t in tokens %}
+			<tr>
+				<td>{{ t.name }}</td>
+				<td>{{ t.iat | date_format }}</td>
+				<td>{{ t.exp | date_format }}</td>
+				<td><a class="btn btn-danger" href="#">Удалить</a></td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
 </section>
 {% endblock %}

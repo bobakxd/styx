@@ -7,7 +7,13 @@ from flask_login import login_required
 import hashlib
 from flaskr.models import User
 from flaskr.models import Project
+from flaskr.models import Token
 import locale
+from flask import request
+from flask import flash
+from datetime import datetime
+from flaskr.models import db
+import functools
 
 #: main - это Blueprint, который содержит представления данного модуля.
 #:
@@ -41,7 +47,9 @@ def user_panel(username):
     user = User.query.filter_by(
             username=username).first()
     projects = Project.query.filter_by(user_id=user.id).all()
-    return render_template('user_panel/index.html', user=user, projects=projects, gravatar_avatar_url=gravatar_avatar_url)
+    return render_template('user_panel/index.html', 
+            user=user, projects=projects, 
+            gravatar_avatar_url=gravatar_avatar_url)
 
 
 @main.route('/<username>/settings')
@@ -49,15 +57,30 @@ def user_panel(username):
 def user_settings(username):
     user = User.query.filter_by(
             username=username).first()
-    return render_template('user_panel/settings.html', user=user, gravatar_avatar_url=gravatar_avatar_url)
+    return render_template('user_panel/settings.html', 
+            user=user, gravatar_avatar_url=gravatar_avatar_url)
 
 
-@main.route('/<username>/settings/tokens')
+@main.route('/<username>/settings/tokens', methods=['GET', 'POST'])
 @login_required
 def user_settings_tokens(username):
     user = User.query.filter_by(
             username=username).first()
-    return render_template('user_panel/settings_tokens.html', user=user, gravatar_avatar_url=gravatar_avatar_url)
+    created_jwt = None
+
+    if request.method == 'POST':
+        if functools.reduce(lambda prev, el: prev and bool(el), request.form.values()):
+            expire_date = datetime.strptime(request.form['expire_date'], '%Y-%m-%d')
+            now = datetime.now()
+            created_jwt = user.encode_auth_token(now - expire_date)
+            token = Token(user_id=user.id, token=created_jwt, name=request.form['token_name'], iat=now, exp=expire_date)
+            db.session.add(token)
+            db.session.commit()
+
+    tokens = Token.query.filter_by(user_id=user.id).all()
+
+    return render_template('user_panel/settings_tokens.html', 
+            user=user, gravatar_avatar_url=gravatar_avatar_url, tokens=tokens, created_jwt=created_jwt)
 
 
 @main.route('/')
