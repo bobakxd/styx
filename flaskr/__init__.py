@@ -1,6 +1,7 @@
 from flask import Flask
 from flaskr.main import main
 from flaskr.auth import auth
+from flaskr.api import api_bp
 from flaskr.auth import login_manager
 from flaskr.models import db
 
@@ -23,4 +24,5 @@ def init_db():
 
 app.register_blueprint(main)
 app.register_blueprint(auth)
+app.register_blueprint(api_bp)
 
