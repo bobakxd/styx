@@ -21,7 +21,11 @@ import functools
 #: шаблонов указаны корневеные (./static и ./templates).
 main = Blueprint('main', __name__, static_folder='static', 
         template_folder='templates')
-locale.setlocale(locale.LC_TIME, ('ru', 'utf-8'))
+
+try:
+    locale.setlocale(locale.LC_TIME, ('ru', 'utf-8'))
+except locale.Error:
+    pass
 
 def gravatar_avatar_url(email, size):
     """Возвращает граватар с указанным *email* и размером *size*. 
