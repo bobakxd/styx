@@ -27,6 +27,9 @@ class User(db.Model):
     passw_hash = db.Column(db.String(512), unique=False, nullable=False) # SHA-256 пароля в hex формате
     # registration_time (*DateTime*) - дата регистрации пользователя
     registration_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
+    #: projects (*list*) - атрибут для задания связи один-ко-многим, список моделей проектов :class:`Project` пользователя
+    projects = db.relationship('Project', lazy=True, backref='user')
+
 
     def is_active(self):
         """Возвращает всегда True, т.к. все пользователи активны."""
@@ -70,7 +73,7 @@ class User(db.Model):
             payload = {
                     'exp': datetime.datetime.utcnow() + time_delta,
                     'iat': datetime.datetime.utcnow(),
-                    'sub': self.id
+                    'sub': self.username
             }
 
             return jwt.encode(payload, current_app.config['SECRET_KEY'], 
@@ -91,13 +94,13 @@ class User(db.Model):
         """
         try:
             payload = jwt.decode(auth_token, 
-                    current_app.config['SECRET_KEY'])
-            return payload['sub']
+                    current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            return (True, payload['sub'])
         except jwt.ExpiredSignatureError:
-            return 'Действие подписи закончилось. Пожалуйста, сгенерируете новый токен заново.'
+            return (False, 'Действие подписи закончилось. Пожалуйста, сгенерируете новый токен заново.')
         except jwt.InvalidTokenError:
-            return 'Неверный токен. \
-                    Попробуете аутентифицироваться заново.'
+            return (False, 'Неверный токен. ' + 
+                    'Попробуете аутентифицироваться заново.')
  
     def __repr__(self):
         return '<User %r>' % self.username
@@ -118,6 +121,7 @@ class Token(db.Model):
     iat = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     # exp (*DateTime*) - дата окончания действия токена
     exp = db.Column(db.DateTime, nullable=False)
+    #: user (:class:`User`) - ссылка на модель владельца проекта (пользователя)
 
     def __repr__(self):
         return '<Token %r [ %r ]>' % (self.id, self.token)
@@ -132,7 +136,9 @@ class Project(db.Model):
     #: user_id (*int*) - идентификатор пользователя проекта
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     #: project_name (*str*) - название проекта
-    project_name = db.Column(db.String(80), nullable=False)
+    project_name = db.Column(db.String(80), unique=True, nullable=False)
+    #: description (*str*) - описание проекта
+    description = db.Column(db.String(250))
     
     def __repr__(self):
         return '<Project %r>' % self.project_name

@@ -72,7 +72,7 @@ def user_settings_tokens(username):
         if functools.reduce(lambda prev, el: prev and bool(el), request.form.values()):
             expire_date = datetime.strptime(request.form['expire_date'], '%Y-%m-%d')
             now = datetime.now()
-            created_jwt = user.encode_auth_token(now - expire_date)
+            created_jwt = user.encode_auth_token(expire_date - now)
             token = Token(user_id=user.id, token=created_jwt, name=request.form['token_name'], iat=now, exp=expire_date)
             db.session.add(token)
             db.session.commit()
