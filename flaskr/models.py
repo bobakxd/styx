@@ -131,12 +131,15 @@ class Project(db.Model):
     """Модель проект, хранит свойства с информацией о проекте пользователя
     : *id*, *user_id*, *project_name*.
     """
+    __table_args__ = (
+            db.UniqueConstraint('user_id', 'project_name'),
+    )
     #: id (*int*) - идентификатор проекта
     id = db.Column(db.Integer, primary_key=True)
     #: user_id (*int*) - идентификатор пользователя проекта
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     #: project_name (*str*) - название проекта
-    project_name = db.Column(db.String(80), unique=True, nullable=False)
+    project_name = db.Column(db.String(80), nullable=False)
     #: description (*str*) - описание проекта
     description = db.Column(db.String(250))
     
