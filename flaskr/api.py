@@ -105,6 +105,7 @@ def token_required(f):
 
 @api.route('/<string:username>/settings')
 @api.doc(params={'username': 'Имя пользователя'})
+@api.doc(params={'username': 'Имя пользователя'}, description='Настройки пользователя')
 class UserSettings(Resource):
     """Ресурс настроек пользователя, URL ресурса: /{username}/settings.
 
@@ -113,14 +114,16 @@ class UserSettings(Resource):
     """
     @api.marshal_with(user_model, envelope='user')
     def get(self, username):
-        """Обратывает GET запрос, возвращет представление пользователя с 
-        использованием модели :data:`user_model`.
+        """Возвращает представление пользователя
+
+        Обратывает GET запрос, возвращет представление пользователя с использованием модели :data:`user_model`.
         """
         user = User.query.filter_by(username=username).first()
         return user
 
 
 @api.route('/<string:username>/<string:project_name>')
+@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта'}, description='Корень проекта')
 class ProjectRoot(Resource):
     """Ресурс корня проекта, URL ресурса: /{username}/{project_name}.
 
@@ -132,8 +135,12 @@ class ProjectRoot(Resource):
     parser.add_argument('description', 
                 help='Описание проекта', location='json')
 
+    @api.response(200, 'Success', project_model)
+    @api.response(404, 'Проекта не существует')
     def get(self, username, project_name):
-        """Обрабатывает GET запрос, возвращает представление проекта с 
+        """Возвращает представление проекта.
+
+        Обрабатывает GET запрос, возвращает представление проекта с 
         использованием модели :data:`project_model`. Либо ошибку 404 в случае, если указазно не верное название проекта.
         """
         user = User.query.filter_by(username=username).first()
@@ -146,9 +153,13 @@ class ProjectRoot(Resource):
 
     @api.doc(security='APITokenHeader')
     @api.expect(parser)
+    @api.response(200, 'Success', project_model)
+    @api.response(422, 'Проект с таким названием уже существует')
     @token_required
     def post(self, username, project_name):
-        """Обрабатывает POST запрос, добавляет проект в БД с указанными 
+        """Добавляет проект.
+
+        Обрабатывает POST запрос, добавляет проект в БД с указанными 
         параметрами, также возвращает представление проекта с 
         использованием модели :data:`project_model`. 
 
@@ -174,6 +185,7 @@ class ProjectRoot(Resource):
 
 
 @api.route('/<string:username>/<string:project_name>/webhook/github')
+@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта'}, description='Веб-хук проекта для синхронизации с Github.')
 class Webhook(Resource):
     """Ресурс Github веб-хука проекта, URL ресурса: 
     /{username}/{project_name}/webhook/github.
@@ -182,9 +194,17 @@ class Webhook(Resource):
        * *username* - имя пользователя
        * *project_name* - название проекта
     """
+    model = api.model('Model', {
+        'description': fields.String,
+        'self_url': fields.String
+    })
+
+    @api.response(200, 'Success', model)
+    @api.response(404, 'Проекта не существует')
     def get(self, username, project_name):
-        """Обрабатывает GET запрос, возвращает представление с описанием  
-        веб-хука и ссылкой на самого себя.
+        """Возвращает представление с описанием веб-хука.
+
+        Обрабатывает GET запрос, возвращает представление с описанием веб-хука и ссылкой на самого себя.
 
         :Поля представления:
            * *description* (*str*) - описание веб-хука
