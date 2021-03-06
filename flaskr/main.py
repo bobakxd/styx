@@ -24,6 +24,16 @@ main = Blueprint('main', __name__, static_folder='static',
 locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
 def gravatar_avatar_url(email, size):
+    """Возвращает граватар с указанным *email* и размером *size*. 
+
+    Возвращает сгенерированный граватар с использованием параметра 
+    d=monsterid в случае, если аватар не загружен на сервисе.
+
+    :param str email: email пользователя
+    :param int size: ширина или высота аватара
+    :returns: URL граватара
+    :rtype: str
+    """
     avatar_hash = hashlib.md5(email.lower().encode('utf-8')).hexdigest()
     return 'https://www.gravatar.com/avatar/{hash}?d=monsterid&s={px}'\
             .format(hash=avatar_hash, px=size)
@@ -31,6 +41,9 @@ def gravatar_avatar_url(email, size):
 
 @main.app_template_filter()
 def date_format(value):
+    """Фильтр, который преобразовывает DateTime в строку формата 
+    %-d %B, %Y г.
+    """
     return value.strftime('%-d %B, %Y г.') 
 
 
@@ -39,8 +52,9 @@ def date_format(value):
 def user_panel(username):
     """Представление (view) c главной панелью пользователя.
 
-    Принимает параметр *username*, т.к. для каждой панели пользователя 
-    выделяет отдельный URL /<*username*>.
+    Возвращает шаблон user_panel/index.html. Принимает параметр 
+    *username*, т.к. для каждой панели пользователя выделяет отдельный 
+    URL /<*username*>.
 
     :param str username: имя пользователя
     """
@@ -55,6 +69,13 @@ def user_panel(username):
 @main.route('/<username>/settings')
 @login_required
 def user_settings(username):
+    """Представление (view) с панелью настроек пользователя.
+
+    Принимает параметр *username*, т.к. для каждой панели настроек 
+    пользователя выделяется отдельный ресурс /<*username*>.
+
+    :param str username: имя пользователя
+    """
     user = User.query.filter_by(
             username=username).first()
     return render_template('user_panel/settings.html', 
@@ -64,6 +85,17 @@ def user_settings(username):
 @main.route('/<username>/settings/tokens', methods=['GET', 'POST'])
 @login_required
 def user_settings_tokens(username):
+    """Представление (view) c панелью настроек токенов пользователя.
+
+    Возвращает шаблон user_panel/settings_tokens.html. Принимает параметр 
+    *username*, т.к. для каждой панели настроек токенов выделяет отдельный URL /<*username*>.
+
+    В случае обработки POST запроса, обрабатывает поля формы добавления 
+    токена. Добавляет токен в БД в случае, если все поля формы были 
+    заполнены верно.
+
+    :param str username: имя пользователя
+    """
     user = User.query.filter_by(
             username=username).first()
     created_jwt = None
