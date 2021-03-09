@@ -142,6 +142,8 @@ class Project(db.Model):
     project_name = db.Column(db.String(80), nullable=False)
     #: description (*str*) - описание проекта
     description = db.Column(db.String(250))
+    #: hook_id (*int*) - идентификатор веб-хука подключенного к проекту
+    hook_id = db.Column(db.Integer)
     
     def __repr__(self):
         return '<Project %r>' % self.project_name

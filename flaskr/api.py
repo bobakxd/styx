@@ -15,6 +15,7 @@ from flaskr.models import db
 from flask import request
 from flask import url_for
 from sqlalchemy.exc import IntegrityError
+from flask_restx import inputs
 
 #: **api_bp** - это Blueprint, который содержит представления ресурсов API приложения.
 #:
@@ -216,7 +217,74 @@ class Webhook(Resource):
         if not project:
             return {'message': 'Проекта с указанным названием не существует.'}, 404
 
-        return {'description': 'Данный веб-хук подключается к сервису Github. После подключения, сервис будет отправлять POST запросы на данный ресурс для синхронизации репозитория с данным проектом. Если вы еще подключили данный веб-хук к репозиторию, то вам необходимо сделать, чтобы получить метрики вашего проекта.', 'self_url': '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name)}, 200
+        return {'description': 'Данный веб-хук подключается к сервису Github. После подключения, сервис будет отправлять POST запросы на данный ресурс для синхронизации репозитория с данным проектом. Если вы еще подключили данный веб-хук к репозиторию, то вам необходимо сделать, чтобы получить метрики вашего проекта.', 'self_url': self._get_self_url(username, project_name)}, 200
+
+    put_parser = reqparse.RequestParser()
+    put_parser.add_argument('reset', type=inputs.boolean,
+             location='args', default=False, 
+             help='Сбрасывает веб-хук')
+
+    @api.response(200, 'Success')
+    @api.response(404, 'Проекта не существует')
+    @api.response(406, 'Веб-хук не подключен')
+    @api.expect(put_parser)
+    def put(self, username, project_name):
+        args = Webhook.put_parser.parse_args(request)
+
+        user = User.query.filter_by(username=username).first()
+        project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
+
+        if not project:
+            return {'message': 'Проекта с указанным названием не существует.'}, 404
+
+        if args['reset']:
+            if project.hook_id is not None:
+                project.hook_id = None
+                db.session.commit()
+                return {'message': 'Хук был успешно сброшен. Теперь к проекту можно подключить новый веб-хук.', 'self-url': self._get_self_url(username, project_name)}, 200
+        else:
+            if project.hook_id is not None:
+                return {
+                    'message': 'Хук не был сброшен. В поле hook_id приведен идентификатор текущего подключенного веб-хука к проекту.',
+                    'hook_id': project.hook_id,
+                    'self-url': self._get_self_url(username, 
+                        project_name)
+                }, 200
+
+        return { 'message': 'К проекту не подключен веб-хук в данный момент.' }, 406
+    
+    post_parser = reqparse.RequestParser()
+    post_parser.add_argument('X-GitHub-Event', 
+             location='headers', required=True, 
+             help='Название события, которое запустило веб-хук')
+    post_parser.add_argument('hook_id', location='json', type=int,
+            help='Идентификатор веб-хука')
+
+    @api.response(200, 'Success')
+    @api.response(404, 'Проекта не существует')
+    @api.response(403, 'Хук уже подключен')
+    @api.response(406, 'Неправильные заголовки в запросе')
+    @api.expect(post_parser)
+    def post(self, username, project_name): 
+        args = Webhook.post_parser.parse_args(request)
+
+        user = User.query.filter_by(username=username).first()
+        project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
+
+        if not project:
+            return {'message': 'Проекта с указанным названием не существует.'}, 404
+
+        event = args['X-GitHub-Event']        
+        if event == 'ping':
+            if not project.hook_id:
+                project.hook_id = args['hook_id']
+                db.session.commit()
+                return {'message': 'Хук успешно подключен.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
+            else:
+                return {'message': 'Хук уже подключен к проекту.'}, 403
+
+    def _get_self_url(self, username, project_name):
+        return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
 
 
 api.add_resource(UserSettings, '/<string:username>/settings', endpoint='user_settings_resource')
