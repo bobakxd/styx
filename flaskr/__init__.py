@@ -4,6 +4,8 @@ from flaskr.auth import auth
 from flaskr.api import api_bp
 from flaskr.auth import login_manager
 from flaskr.models import db
+import os
+import sys
 
 app = Flask(__name__)
 app.config.update(

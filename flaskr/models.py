@@ -188,8 +188,30 @@ class File(db.Model):
     file_name = db.Column(db.String(80), nullable=False)
     #: git_hash (*str*) - Git хеш содержимого файла, SHA-1 в hex формате
     git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
+    #: metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`RawMetrics`
+    metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file')
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
         return '<File %r>' % self.file_name
 
+
+class RawMetrics(db.Model):
+    """Модель LOC метрик, хранит свойства с различными LOC-метриками:
+    *id*, *loc*, *lloc*, *ploc*, *comments*, *blanks*.
+    """
+    #: id (*int*) - идентификатор LOC-метрик
+    id = db.Column(db.Integer, primary_key=True)
+    #: file_id (*int*) - идетификатор файла, для которого хранятся метрики
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    #: loc (*int*) - общее количество строк кода (LOC)
+    loc = db.Column(db.Integer, nullable=False)
+    #: lloc (*int*) - количество логических строк кода (LLOC)
+    lloc = db.Column(db.Integer, nullable=False)
+    #: ploc (*int*) - количество физических строк кода (PLOC)
+    ploc = db.Column(db.Integer, nullable=False)
+    #: comments (*int*) - количество строк комментариев
+    comments = db.Column(db.Integer, nullable=False)
+    #: blanks (*int*) - количество пустых строк
+    blanks = db.Column(db.Integer, nullable=False)
+ 

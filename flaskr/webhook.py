@@ -3,8 +3,11 @@ import urllib
 import base64
 from flaskr.models import File
 from flaskr.models import Directory
+from flaskr.models import RawMetrics
 from flaskr.models import db
 from flask import current_app
+from metrics import raw
+import re
 
 def apply_args_to_url(url, **kwargs):
     url = url.replace('{/', '/{')
@@ -18,12 +21,17 @@ def get_commit_of_default_branch(repo):
     return response.json()['commit']
 
 
+def base64_decode(s):
+    return base64.b64decode(s).decode('utf-8')
+
+
 def decode_content(content, encoding):
     decode_func = {
-        'base64': base64.b64decode
+        'base64': base64_decode
     }
 
-    return decode_func[encoding](content)
+    lines = content.split('\n')
+    return ''.join([decode_func[encoding](l) for l in lines])
     
 
 def traverse_tree(tree_url, project_id):
@@ -42,6 +50,23 @@ def _traverse(tree, parent_dir, project_id):
             f = File(file_name=o['path'],
                     parent_dir=parent_dir,
                     git_hash=o['sha'])
+
+            if re.match(r'.+\.c$', o['path']):
+                blob_response = requests.get(o['url'])
+                blob_body = blob_response.json()
+
+                metrics = raw.analyze_code(o['path'], decode_content(
+                    blob_body['content'], blob_body['encoding']))
+                raw_metrics = RawMetrics(loc=metrics.loc,
+                        lloc=metrics.lloc,
+                        ploc=metrics.ploc,
+                        comments=metrics.comments,
+                        blanks=metrics.blanks,
+                        file=f
+                )
+                db.session.add(raw_metrics)
+                db.session.commit()
+             
             db.session.add(f)
             db.session.commit()
         

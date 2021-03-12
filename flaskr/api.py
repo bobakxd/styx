@@ -300,7 +300,6 @@ class Webhook(Resource):
                 db.session.commit()
                 commit = webhook.get_commit_of_default_branch(
                         api.payload['repository'])
-                current_app.logger.info(commit)
                 webhook.traverse_tree(commit['commit']['tree']['url'], project.id)
 
                 return {'message': 'Хук успешно подключен.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
