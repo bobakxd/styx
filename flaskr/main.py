@@ -14,6 +14,7 @@ from flask import flash
 from datetime import datetime
 from flaskr.models import db
 import functools
+from flask import current_app
 
 #: main - это Blueprint, который содержит представления данного модуля.
 #:
@@ -65,6 +66,7 @@ def user_panel(username):
     user = User.query.filter_by(
             username=username).first()
     projects = Project.query.filter_by(user_id=user.id).all()
+
     return render_template('user_panel/index.html', 
             user=user, projects=projects, 
             gravatar_avatar_url=gravatar_avatar_url)

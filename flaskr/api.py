@@ -16,6 +16,8 @@ from flask import request
 from flask import url_for
 from sqlalchemy.exc import IntegrityError
 from flask_restx import inputs
+from flaskr import webhook
+from flask import current_app
 
 #: **api_bp** - это Blueprint, который содержит представления ресурсов API приложения.
 #:
@@ -253,32 +255,54 @@ class Webhook(Resource):
 
         return { 'message': 'К проекту не подключен веб-хук в данный момент.' }, 406
     
-    post_parser = reqparse.RequestParser()
-    post_parser.add_argument('X-GitHub-Event', 
-             location='headers', required=True, 
-             help='Название события, которое запустило веб-хук')
-    post_parser.add_argument('hook_id', location='json', type=int,
-            help='Идентификатор веб-хука')
+    post_model = api.schema_model('PostModel', {
+        'required': ['hook_id'],
+        'properties': {
+            'hook_id': {
+                'description': 'Идентификатор веб-хука',
+                'type': 'integer'
+            },
+            'repository': {
+                'required': ['default_branch', 'branches_url'],
+                'properties': {
+                    'branches_url': {
+                        'description': 'URL ветвей репозитория',
+                        'type': 'string'
+                    },
+                    'default_branch': {
+                        'description': 'Название главной ветви репозитория',
+                        'type': 'string'
+                    }
+                },
+                'type': 'object'
+            }
+        },
+        'type': 'object'
+    })
 
     @api.response(200, 'Success')
     @api.response(404, 'Проекта не существует')
     @api.response(403, 'Хук уже подключен')
     @api.response(406, 'Неправильные заголовки в запросе')
-    @api.expect(post_parser)
+    @api.param('X-GitHub-Event', 'Название события, которое запустило веб-хук', _in='header', required=True)
+    @api.expect(post_model, validate=True)
     def post(self, username, project_name): 
-        args = Webhook.post_parser.parse_args(request)
-
         user = User.query.filter_by(username=username).first()
         project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
 
         if not project:
             return {'message': 'Проекта с указанным названием не существует.'}, 404
 
-        event = args['X-GitHub-Event']        
+        event = request.headers['X-GitHub-Event']        
         if event == 'ping':
             if not project.hook_id:
-                project.hook_id = args['hook_id']
+                project.hook_id = api.payload['hook_id']
                 db.session.commit()
+                commit = webhook.get_commit_of_default_branch(
+                        api.payload['repository'])
+                current_app.logger.info(commit)
+                webhook.traverse_tree(commit['commit']['tree']['url'], project.id)
+
                 return {'message': 'Хук успешно подключен.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
             else:
                 return {'message': 'Хук уже подключен к проекту.'}, 403

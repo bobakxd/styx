@@ -121,7 +121,6 @@ class Token(db.Model):
     iat = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     # exp (*DateTime*) - дата окончания действия токена
     exp = db.Column(db.DateTime, nullable=False)
-    #: user (:class:`User`) - ссылка на модель владельца проекта (пользователя)
 
     def __repr__(self):
         return '<Token %r [ %r ]>' % (self.id, self.token)
@@ -144,6 +143,7 @@ class Project(db.Model):
     description = db.Column(db.String(250))
     #: hook_id (*int*) - идентификатор веб-хука подключенного к проекту
     hook_id = db.Column(db.Integer)
+    #: user (:class:`User`) - ссылка на модель владельца проекта (пользователя)
     
     def __repr__(self):
         return '<Project %r>' % self.project_name
@@ -154,17 +154,23 @@ class Directory(db.Model):
     внутри проекта: *id*, *project_id*, *dir_name*, *dir_parent_id*, 
     *git_hash*.
     """
+    __tablename__ = 'directory'
+
     #: id (*int*) - идентификатор директории
     id = db.Column(db.Integer, primary_key=True)
     #: project_id (*int*) - идентификатор проекта директории
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     #: dir_name (*str*) - название директории
-    dir_name = db.Column(db.String(80), nullable=False)
+    dir_name = db.Column(db.String(80))
     #: dir_parent_id (*int*) - идентификатор директории-родителя
-    dir_parent_id = db.Column(db.Integer) # ссылка на запись из той же таблицы
+    dir_parent_id = db.Column(db.Integer, db.ForeignKey('directory.id')) # ссылка на запись из той же таблицы
     #: git_hash (*str*) - Git хеш содержимого директории, SHA-1 в hex 
     #: формате
-    git_hash = db.Column(db.String(320), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
+    git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
+    #: files (*list*) - атрибут для задания связи один-ко-многим, список моделей файлов :class:`Fiel` директории
+    files = db.relationship('File', lazy=True, backref='parent_dir')
+    #: dir_parent - директория-родитель :class:`Directory`
+    dir_parent = db.relationship('Directory', remote_side=[id])
 
     def __repr__(self):
         return '<Directory %r>' % self.dir_name
@@ -181,7 +187,8 @@ class File(db.Model):
     #: file_name (*str*) - имя файла
     file_name = db.Column(db.String(80), nullable=False)
     #: git_hash (*str*) - Git хеш содержимого файла, SHA-1 в hex формате
-    git_hash = db.Column(db.String(320), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
+    git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
+    #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
         return '<File %r>' % self.file_name
