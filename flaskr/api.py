@@ -7,6 +7,8 @@ from flask_restx import Api
 from flask_restx import Resource
 from flaskr.models import User
 from flaskr.models import Project
+from flaskr.models import Directory
+from flaskr.models import File
 from flask_restx import fields
 from flask_restx import reqparse
 from flask_restx import marshal
@@ -191,7 +193,7 @@ class ProjectRoot(Resource):
 @api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта'}, description='Веб-хук проекта для синхронизации с Github.')
 class Webhook(Resource):
     """Ресурс Github веб-хука проекта, URL ресурса: 
-    /{username}/{project_name}/webhook/github.
+    {username}/{project_name}/webhook/github.
 
     :Параметры запроса:
        * *username* - имя пользователя
@@ -308,6 +310,64 @@ class Webhook(Resource):
 
     def _get_self_url(self, username, project_name):
         return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
+
+@api.route('/<string:username>/<string:project_name>/<path:path>/metrics/raw')
+@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта', 'path': 'Путь к файлу'}, description='LOC-метрики файла')
+class RawMetrics(Resource):
+    """Ресурс LOC-метрик файла, URL ресурса: 
+    {username}/{project_name}/{path}/metrics/raw.
+
+    :Параметры запроса:
+       * *username* - имя пользователя
+       * *project_name* - название проекта
+       * *path* - путь к файлу
+    """
+    metrics_model = api.model('RawMetrics', {
+        'loc': fields.Integer(required=True, help='Общее количество строк кода (LOC)'),
+        'lloc': fields.Integer(required=True, help='Количество логических строк кода (LLOC)'),
+        'ploc': fields.Integer(required=True, help='Количество физических строк кода (PLOC)'),
+        'comments': fields.Integer(required=True, help='Количество строк комментариев'),
+        'blanks': fields.Integer(required=True, help='Количество пустых строк')
+    })
+
+    @api.response(200, 'Success', metrics_model)
+    @api.response(404, 'Проекта не существует')
+    def get(self, username, project_name, path):
+        """Возвращает представление с различными LOC-метриками файла.
+
+        Обрабатывает GET запрос, возвращает представление с различными LOC-метриками файла.
+
+        :Поля представления:
+           * loc (*int*) - общее количество строк кода (LOC)
+           * lloc (*int*) - количество логических строк кода (LLOC)
+           * ploc (*int*) - количество физических строк кода (PLOC)
+           * comments (*int*) - количество строк комментариев
+           * blanks (*int*) - количество пустых строк
+        """
+        user = User.query.filter_by(username=username).first()
+        project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
+
+        if not project:
+            return {'message': 'Проекта с указанным названием не существует.'}, 404
+
+        parts = path.split('/')
+        dirs = parts[:-1]
+        filename = parts[-1]
+
+        parent = Directory.query.filter_by(dir_name=None, project_id=project.id).first()
+
+        for child in dirs:
+            if not parent:
+                return {'message': 'Директории с указанным именем не существует.'}, 404
+        
+            parent = Directory.query.filter_by(dir_parent_id=parent.id, dir_name=child).first()
+
+        f = File.query.filter_by(dir_id=parent.id, file_name=filename).first()
+
+        if not f:
+            return {'message': 'Файла с указанным именем не существует.'}, 404
+
+        return marshal(f.metrics, RawMetrics.metrics_model), 200
 
 
 api.add_resource(UserSettings, '/<string:username>/settings', endpoint='user_settings_resource')
