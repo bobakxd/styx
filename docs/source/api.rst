@@ -14,3 +14,6 @@
 
 .. autoclass:: flaskr.api.Webhook
    :members:
+
+.. autoclass:: flaskr.api.RawMetrics
+   :members:

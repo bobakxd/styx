@@ -233,6 +233,13 @@ class Webhook(Resource):
     @api.response(406, 'Веб-хук не подключен')
     @api.expect(put_parser)
     def put(self, username, project_name):
+        """Сбрасывает веб-хук.
+
+        Обрабатывает PUT запрос, который сбрасывает веб-хук в зависимости от параметра *reset*. В случае успеха, возвращает представление.
+
+        :Поля представления:
+           * *message* (*str*) - сообщение об проведенной операции
+        """
         args = Webhook.put_parser.parse_args(request)
 
         user = User.query.filter_by(username=username).first()
@@ -289,6 +296,14 @@ class Webhook(Resource):
     @api.param('X-GitHub-Event', 'Название события, которое запустило веб-хук', _in='header', required=True)
     @api.expect(post_model, validate=True)
     def post(self, username, project_name): 
+        """Обрабатывает разные события Github веб-хука.
+
+        Обрабатывает POST запрос, который обрабатывает разные события веб-хука Github в зависимости заголовка *X-GitHub-Event*. В случае успеха, возвращает представление cо статусом веб-хука и ссылкой на самого себя.
+
+        :Поля представления:
+           * *message* (*str*) - сообщение о статусе веб-хука
+           * *self_url* (*str*) - ссылка на самого себя
+        """
         user = User.query.filter_by(username=username).first()
         project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
 
@@ -310,6 +325,7 @@ class Webhook(Resource):
 
     def _get_self_url(self, username, project_name):
         return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
+
 
 @api.route('/<string:username>/<string:project_name>/<path:path>/metrics/raw')
 @api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта', 'path': 'Путь к файлу'}, description='LOC-метрики файла')

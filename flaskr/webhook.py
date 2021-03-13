@@ -1,3 +1,5 @@
+"""Модуль **webhook** содержит функции для взаимодейтсвия с Github API. В модуле также есть разные вспомогательные функции для обработки параметров или полей запросов Github API.
+"""
 import requests
 import urllib
 import base64
@@ -10,11 +12,31 @@ from metrics import raw
 import re
 
 def apply_args_to_url(url, **kwargs):
+    """Применяет аргументы к URL с параметрами. Возвращает строку с URL и вставленными в него параметрами.
+
+    URL с параметрами, который возвращается в ответах Github API имеет следующий формат:
+    `https://api.github.com/../..{/arg}`
+
+    Функция подставляет в *arg* параметр из *kwargs* и возвращает строку с формированным URL'ом.
+
+    :param string url: URL с параметрами
+    :param kwargs: словарь с переменными именованными параметрами
+    :returns: сформированная строка c URL
+    :rtype: string
+    """
     url = url.replace('{/', '/{')
     return url.format(**kwargs)
 
 
 def get_commit_of_default_branch(repo):
+    """Получает представление последнего коммита главной ветви репозитория.
+
+    Выполняет запрос к Github API, который получает представление последнего коммита главной ветви репозитория *repo*.
+
+    :param dict repo: JSON-объект репозитория
+    :returns: JSON-объект последнего коммита
+    :rtype: dict
+    """
     branch = repo['default_branch']
     branches_url = repo['branches_url']
     response = requests.get(apply_args_to_url(branches_url, branch=branch))
@@ -22,10 +44,23 @@ def get_commit_of_default_branch(repo):
 
 
 def base64_decode(s):
+    """Переводит строку в формате base64 в юникод (utf-8) строку.
+
+    :param string s: строка в base64
+    :returns: юникод строка
+    :rtype: string
+    """
     return base64.b64decode(s).decode('utf-8')
 
 
 def decode_content(content, encoding):
+    """Переводит строку с содержимым *content* в юникод (utf-8) строку в зависимости от формата *encoding*, в котором хранится *content*.
+
+    :param string content: строка с содержимым
+    :param string encoding: формат строки (base64,..)
+    :returns: юникод строка
+    :rtype: string
+    """
     decode_func = {
         'base64': base64_decode
     }
@@ -35,6 +70,16 @@ def decode_content(content, encoding):
     
 
 def traverse_tree(tree_url, project_id):
+    """Обходит дерево коммита при помощи Github API.
+
+    В Github API есть ресурс для получения дерева файлов и директорий коммита:
+    `https://api.github.com/repos/{user}/{repo}/git/trees{/sha}`
+
+    URL с SHA-хешом соответстующего дерева передается в *tree_url*.
+
+    :param string tree_url: URL дерева
+    :param int project_id: идентификатор проекта
+    """
     response = requests.get(tree_url)
     body = response.json()
 
@@ -45,6 +90,15 @@ def traverse_tree(tree_url, project_id):
 
 
 def _traverse(tree, parent_dir, project_id):
+    """Вспомогательная функция, которая используется для реализации рекурсивного обхода дерева.
+
+    Данная функция используется функцией :func:`traverse_tree`. Функция обходит рекурсивно дерево, критерием прерывания рекурсии являются узлы дерева, которые имеют тип (поле *type*) blob (файл). То есть, если узел имеет тип tree (директория), то обход продолжается для этой директории.
+
+    :param dict tree: JSON-объект дерева
+    :param parent_dir: родительская директория
+    :type parent_dir: :class:`flaskr.models.Directory`
+    :param int project_id: идентификатор проекта
+    """
     for o in tree:
         if o['type'] == 'blob':
             f = File(file_name=o['path'],
