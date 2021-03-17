@@ -6,9 +6,11 @@ import base64
 from flaskr.models import File
 from flaskr.models import Directory
 from flaskr.models import RawMetrics
+from flaskr.models import HalsteadMetrics
 from flaskr.models import db
 from flask import current_app
 from metrics import raw
+from metrics import halstead
 import re
 
 def apply_args_to_url(url, **kwargs):
@@ -79,16 +81,29 @@ def _add_metrics_for_file(tree_obj, f):
         blob_response = requests.get(tree_obj['url'])
         blob_body = blob_response.json()
 
-        metrics = raw.analyze_code(tree_obj['path'], decode_content(
-            blob_body['content'], blob_body['encoding']))
-        raw_metrics = RawMetrics(loc=metrics.loc,
-                lloc=metrics.lloc,
-                ploc=metrics.ploc,
-                comments=metrics.comments,
-                blanks=metrics.blanks,
+        content = decode_content(
+                blob_body['content'], blob_body['encoding'])
+        calc_raw_metrics = raw.analyze_code(tree_obj['path'], content)
+        raw_metrics = RawMetrics(
+                loc=calc_raw_metrics.loc,
+                lloc=calc_raw_metrics.lloc,
+                ploc=calc_raw_metrics.ploc,
+                comments=calc_raw_metrics.comments,
+                blanks=calc_raw_metrics.blanks,
                 file=f
         )
         db.session.add(raw_metrics)
+
+        calc_halstead_metrics = halstead.analyze_code(tree_obj['path'], 
+                content)
+        halstead_metrics = HalsteadMetrics(
+                unique_n1=calc_halstead_metrics.n1,
+                unique_n2=calc_halstead_metrics.n2,
+                total_n1=calc_halstead_metrics.N1,
+                total_n2=calc_halstead_metrics.N2,
+                file=f
+        )
+        db.session.add(halstead_metrics)
 
 
 def _add_tree_obj_to_db(o, parent_dir, project_id):
@@ -198,7 +213,7 @@ def update_tree_objs_in_db(tree_url, project_id):
             ).first()
 
     if body['sha'] != d.git_hash:
-        _traverse(body['tree'], root_dir, project_id, _update_tree_obj_in_db)
+        _traverse(body['tree'], d, project_id, _update_tree_obj_in_db)
         db.session.commit()
 
 

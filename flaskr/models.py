@@ -188,8 +188,10 @@ class File(db.Model):
     file_name = db.Column(db.String(80), nullable=False)
     #: git_hash (*str*) - Git хеш содержимого файла, SHA-1 в hex формате
     git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
-    #: metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`RawMetrics`
-    metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file')
+    #: raw_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`RawMetrics`
+    raw_metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file')
+    #: halstead_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`HalsteadMetrics`
+    halstead_metrics = db.relationship('HalsteadMetrics', uselist=False, lazy=True, backref='file')
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
@@ -215,3 +217,22 @@ class RawMetrics(db.Model):
     #: blanks (*int*) - количество пустых строк
     blanks = db.Column(db.Integer, nullable=False)
  
+
+class HalsteadMetrics(db.Model):
+    """Модель метрик Холстеда, хранит свойства с различными показателями 
+    этой метрики:
+    *id*, *n1*, *n2*, *N1*, *N2*.
+    """
+    #: id (*int*) - идентификатор метрик Холстеда
+    id = db.Column(db.Integer, primary_key=True)
+    #: file_id (*int*) - идетификатор файла, для которого хранятся метрики
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    #: unique_n1 (*int*) - количество уникальных операторов n1
+    unique_n1 = db.Column(db.Integer, nullable=False)
+    #: unique_n2 (*int*) - количество уникальных операндов n2
+    unique_n2 = db.Column(db.Integer, nullable=False)
+    #: total_n1 (*int*) - общее количество операторов N1
+    total_n1 = db.Column(db.Integer, nullable=False)
+    #: total_n2 (*int*) - общее количество операндов N2
+    total_n2 = db.Column(db.Integer, nullable=False)
+
