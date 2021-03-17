@@ -30,7 +30,7 @@ def apply_args_to_url(url, **kwargs):
 
 def get_commit(git_commits_url, sha):
     response = requests.get(apply_args_to_url(git_commits_url, sha=sha))
-    return response
+    return response.json()
 
 
 def get_commit_of_default_branch(repo):
@@ -111,9 +111,50 @@ def _add_tree_obj_to_db(o, parent_dir, project_id):
         return d
 
     return None
+
+
+def _update_tree_obj_in_db(o, parent_dir, project_id):
+    if o['type'] == 'blob':
+        f = File.query.filter_by(
+                file_name=o['path'],
+                dir_id=parent_dir.id
+                ).first()
+
+        if not f:
+            f = File(file_name=o['path'],
+                    parent_dir=parent_dir,
+                    git_hash=o['sha'])
+            _add_metrics_for_file(o, f)
+            db.session.add(f)
+
+        if o['sha'] != f.git_hash:
+            _add_metrics_for_file(o, f)
+            f.git_hash = o['sha']
+
+        return f
+
+    if o['type'] == 'tree':
+        d = Directory.query.filter_by(
+            project_id=project_id,
+            dir_name=o['path'],
+            dir_parent_id=parent_dir.id
+            ).first()
+
+        if not d:
+            d = Directory(dir_name = o['path'],
+                project_id=project_id,
+                dir_parent=parent_dir,
+                git_hash=o['sha'])
+            db.session.add(d)
+            return d
+        
+        if o['sha'] != d.git_hash:
+            return d
+
+        return None
  
 
-def traverse_tree(tree_url, project_id):
+def add_tree_objs_to_db(tree_url, project_id):
     """Обходит дерево коммита при помощи Github API.
 
     В Github API есть ресурс для получения дерева файлов и директорий коммита:
@@ -137,6 +178,30 @@ def traverse_tree(tree_url, project_id):
     db.session.commit()
 
 
+def update_tree_objs_in_db(tree_url, project_id):
+    """Обходит дерево коммита при помощи Github API.
+
+    В Github API есть ресурс для получения дерева файлов и директорий коммита:
+    `https://api.github.com/repos/{user}/{repo}/git/trees{/sha}`
+
+    URL с SHA-хешом соответстующего дерева передается в *tree_url*.
+
+    :param string tree_url: URL дерева
+    :param int project_id: идентификатор проекта
+    """
+    response = requests.get(tree_url)
+    body = response.json()
+
+    d = Directory.query.filter_by(
+            project_id=project_id,
+            dir_name=None
+            ).first()
+
+    if body['sha'] != d.git_hash:
+        _traverse(body['tree'], root_dir, project_id, _update_tree_obj_in_db)
+        db.session.commit()
+
+
 def _traverse(tree, parent_dir, project_id, callback):
     """Вспомогательная функция, которая используется для реализации рекурсивного обхода дерева.
 
@@ -151,7 +216,8 @@ def _traverse(tree, parent_dir, project_id, callback):
         obj = callback(o, parent_dir, project_id)
 
         if o['type'] == 'tree':
-            response = requests.get(o['url'])
-            body = response.json()
-            _traverse(body['tree'], obj, project_id, callback)
+            if obj:
+                response = requests.get(o['url'])
+                body = response.json()
+                _traverse(body['tree'], obj, project_id, callback)
 

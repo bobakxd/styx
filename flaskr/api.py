@@ -213,6 +213,7 @@ class Webhook(Resource):
 
         :Поля представления:
            * *description* (*str*) - описание веб-хука
+           * *hook_id* (*int*) - идентификатор веб-хука
            * *self_url* (*str*) - ссылка на самого себя
         """
         user = User.query.filter_by(username=username).first()
@@ -221,7 +222,7 @@ class Webhook(Resource):
         if not project:
             return {'message': 'Проекта с указанным названием не существует.'}, 404
 
-        return {'description': 'Данный веб-хук подключается к сервису Github. После подключения, сервис будет отправлять POST запросы на данный ресурс для синхронизации репозитория с данным проектом. Если вы еще подключили данный веб-хук к репозиторию, то вам необходимо сделать, чтобы получить метрики вашего проекта.', 'self_url': self._get_self_url(username, project_name)}, 200
+        return {'description': 'Данный веб-хук подключается к сервису Github. После подключения, сервис будет отправлять POST запросы на данный ресурс для синхронизации репозитория с данным проектом. Если вы еще подключили данный веб-хук к репозиторию, то вам необходимо сделать, чтобы получить метрики вашего проекта.', 'hook_id': project.hook_id, 'self_url': self._get_self_url(username, project_name)}, 200
 
     put_parser = reqparse.RequestParser()
     put_parser.add_argument('reset', type=inputs.boolean,
@@ -271,11 +272,19 @@ class Webhook(Resource):
                 'description': 'Идентификатор веб-хука',
                 'type': 'integer'
             },
+            'after': {
+                'description': 'SHA самого последнего коммита после выполнения push в репозитории',
+                'type': 'string'
+            },
             'repository': {
                 'required': ['default_branch', 'branches_url'],
                 'properties': {
                     'branches_url': {
                         'description': 'URL ветвей репозитория',
+                        'type': 'string'
+                    },
+                    'git_commits_url': {
+                        'description': 'URL коммитов репозитория',
                         'type': 'string'
                     },
                     'default_branch': {
@@ -317,11 +326,24 @@ class Webhook(Resource):
                 db.session.commit()
                 commit = webhook.get_commit_of_default_branch(
                         api.payload['repository'])
-                webhook.traverse_tree(commit['commit']['tree']['url'], project.id)
+                webhook.add_tree_objs_to_db(commit['commit']['tree']['url'], project.id)
 
                 return {'message': 'Хук успешно подключен.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
             else:
                 return {'message': 'Хук уже подключен к проекту.'}, 403
+
+        if event == 'push':
+            if project.hook_id:
+                after_commit = webhook.get_commit(
+                        api.payload['repository']['git_commits_url'], 
+                        api.payload['after']
+                        )
+                webhook.update_tree_objs_in_db(
+                        after_commit['tree']['url'], project.id)
+
+                return {'message': 'Событие push успешно обработано.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
+            else:
+                return {'message': 'Хук не подключен к проекту.'}, 403
 
     def _get_self_url(self, username, project_name):
         return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
