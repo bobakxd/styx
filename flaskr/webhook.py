@@ -28,6 +28,11 @@ def apply_args_to_url(url, **kwargs):
     return url.format(**kwargs)
 
 
+def get_commit(git_commits_url, sha):
+    response = requests.get(apply_args_to_url(git_commits_url, sha=sha))
+    return response
+
+
 def get_commit_of_default_branch(repo):
     """Получает представление последнего коммита главной ветви репозитория.
 
@@ -67,7 +72,46 @@ def decode_content(content, encoding):
 
     lines = content.split('\n')
     return ''.join([decode_func[encoding](l) for l in lines])
+
+
+def _add_metrics_for_file(tree_obj, f):
+    if re.match(r'.+\.c$', tree_obj['path']):
+        blob_response = requests.get(tree_obj['url'])
+        blob_body = blob_response.json()
+
+        metrics = raw.analyze_code(tree_obj['path'], decode_content(
+            blob_body['content'], blob_body['encoding']))
+        raw_metrics = RawMetrics(loc=metrics.loc,
+                lloc=metrics.lloc,
+                ploc=metrics.ploc,
+                comments=metrics.comments,
+                blanks=metrics.blanks,
+                file=f
+        )
+        db.session.add(raw_metrics)
+
+
+def _add_tree_obj_to_db(o, parent_dir, project_id):
+    if o['type'] == 'blob':
+        f = File(file_name=o['path'],
+                parent_dir=parent_dir,
+                git_hash=o['sha'])
+        
+        _add_metrics_for_file(o, f)
+
+        db.session.add(f)
+        return f
     
+    if o['type'] == 'tree':
+        d = Directory(dir_name = o['path'],
+                project_id=project_id,
+                dir_parent=parent_dir,
+                git_hash=o['sha'])
+        db.session.add(d)
+        return d
+
+    return None
+ 
 
 def traverse_tree(tree_url, project_id):
     """Обходит дерево коммита при помощи Github API.
@@ -86,10 +130,14 @@ def traverse_tree(tree_url, project_id):
     root_dir = Directory(project_id=project_id,
             git_hash=body['sha'])
 
-    _traverse(body['tree'], root_dir, project_id)
+    db.session.add(root_dir)
+
+    _traverse(body['tree'], root_dir, project_id, _add_tree_obj_to_db)
+
+    db.session.commit()
 
 
-def _traverse(tree, parent_dir, project_id):
+def _traverse(tree, parent_dir, project_id, callback):
     """Вспомогательная функция, которая используется для реализации рекурсивного обхода дерева.
 
     Данная функция используется функцией :func:`traverse_tree`. Функция обходит рекурсивно дерево, критерием прерывания рекурсии являются узлы дерева, которые имеют тип (поле *type*) blob (файл). То есть, если узел имеет тип tree (директория), то обход продолжается для этой директории.
@@ -100,39 +148,10 @@ def _traverse(tree, parent_dir, project_id):
     :param int project_id: идентификатор проекта
     """
     for o in tree:
-        if o['type'] == 'blob':
-            f = File(file_name=o['path'],
-                    parent_dir=parent_dir,
-                    git_hash=o['sha'])
+        obj = callback(o, parent_dir, project_id)
 
-            if re.match(r'.+\.c$', o['path']):
-                blob_response = requests.get(o['url'])
-                blob_body = blob_response.json()
-
-                metrics = raw.analyze_code(o['path'], decode_content(
-                    blob_body['content'], blob_body['encoding']))
-                raw_metrics = RawMetrics(loc=metrics.loc,
-                        lloc=metrics.lloc,
-                        ploc=metrics.ploc,
-                        comments=metrics.comments,
-                        blanks=metrics.blanks,
-                        file=f
-                )
-                db.session.add(raw_metrics)
-                db.session.commit()
-             
-            db.session.add(f)
-            db.session.commit()
-        
         if o['type'] == 'tree':
-            d = Directory(dir_name = o['path'],
-                    project_id=project_id,
-                    dir_parent=parent_dir,
-                    git_hash=o['sha'])
-            db.session.add(d)
-            db.session.commit()
-
             response = requests.get(o['url'])
             body = response.json()
-            _traverse(body['tree'], d, project_id)
+            _traverse(body['tree'], obj, project_id, callback)
 
