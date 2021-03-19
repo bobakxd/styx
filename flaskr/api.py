@@ -251,6 +251,7 @@ class Webhook(Resource):
 
         if args['reset']:
             if project.hook_id is not None:
+                Directory.query.filter_by(dir_name=None, project_id=project.id).delete()
                 project.hook_id = None
                 db.session.commit()
                 return {'message': 'Хук был успешно сброшен. Теперь к проекту можно подключить новый веб-хук.', 'self-url': self._get_self_url(username, project_name)}, 200
@@ -349,18 +350,23 @@ class Webhook(Resource):
         return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
 
 
-@api.route('/<string:username>/<string:project_name>/<path:path>/metrics/raw')
-@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта', 'path': 'Путь к файлу'}, description='LOC-метрики файла')
-class RawMetrics(Resource):
-    """Ресурс LOC-метрик файла, URL ресурса: 
-    {username}/{project_name}/{path}/metrics/raw.
+@api.route('/<string:username>/<string:project_name>/<path:path>/metrics/<string:metrics_type>')
+@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта', 'path': 'Путь к файлу', 'metrics_type': 'Вид метрик'}, description='Метрики файла')
+class Metrics(Resource):
+    """Ресурс метрик файла, URL ресурса: 
+    {username}/{project_name}/{path}/metrics/{metrics_type}.
 
     :Параметры запроса:
        * *username* - имя пользователя
        * *project_name* - название проекта
        * *path* - путь к файлу
+       * *metrics_type* - вид метрик (raw, halstead)
+
+    :Вид метрик:
+       * *raw* - LOC метрики
+       * *halstead* - метрики Холстеда
     """
-    metrics_model = api.model('RawMetrics', {
+    raw_metrics_model = api.model('RawMetrics', {
         'loc': fields.Integer(required=True, help='Общее количество строк кода (LOC)'),
         'lloc': fields.Integer(required=True, help='Количество логических строк кода (LLOC)'),
         'ploc': fields.Integer(required=True, help='Количество физических строк кода (PLOC)'),
@@ -368,19 +374,32 @@ class RawMetrics(Resource):
         'blanks': fields.Integer(required=True, help='Количество пустых строк')
     })
 
-    @api.response(200, 'Success', metrics_model)
+    halstead_metrics_model = api.model('HalsteadMetrics', {
+        'n1': fields.Integer(required=True, help='Количество уникальных операторов', attribute='unique_n1'),
+        'n2': fields.Integer(required=True, help='Количество уникальных операндов', attribute='unique_n2'),
+        'N1': fields.Integer(required=True, help='Общее количество операторов', attribute='total_n1'),
+        'N2': fields.Integer(required=True, help='Общее количество операндов', attribute='total_n2')
+    })
+
+    @api.response(200, 'Success')
     @api.response(404, 'Проекта не существует')
-    def get(self, username, project_name, path):
-        """Возвращает представление с различными LOC-метриками файла.
+    def get(self, username, project_name, path, metrics_type):
+        """Возвращает представление с различными метриками файла.
 
-        Обрабатывает GET запрос, возвращает представление с различными LOC-метриками файла.
+        Обрабатывает GET запрос, возвращает представление с различными метриками файла. Вид метрик указывается при помощи параметра *metrics_type*. Для разных значений параметра возвращаются разные представления метрик.
 
-        :Поля представления:
+        :Поля представления для raw (LOC метрики):
            * loc (*int*) - общее количество строк кода (LOC)
            * lloc (*int*) - количество логических строк кода (LLOC)
            * ploc (*int*) - количество физических строк кода (PLOC)
            * comments (*int*) - количество строк комментариев
            * blanks (*int*) - количество пустых строк
+
+        :Поля представления для halstead (метрики Холстеда):
+           * n1 (*int*) - количество уникальных операторов
+           * n1 (*int*) - количество уникальных операндов
+           * N1 (*int*) - общее количество операторов
+           * N2 (*int*) - общее количество операндов
         """
         user = User.query.filter_by(username=username).first()
         project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
@@ -405,7 +424,13 @@ class RawMetrics(Resource):
         if not f:
             return {'message': 'Файла с указанным именем не существует.'}, 404
 
-        return marshal(f.metrics, RawMetrics.metrics_model), 200
+        if metrics_type == 'raw':
+            return marshal(f.raw_metrics, Metrics.raw_metrics_model), 200
+        elif metrics_type == 'halstead':
+            return marshal(f.halstead_metrics, 
+                    Metrics.halstead_metrics_model), 200
+        else:
+            return {'message': 'Указанные метрики не вычислены для данного файла'}, 404
 
 
 api.add_resource(UserSettings, '/<string:username>/settings', endpoint='user_settings_resource')
