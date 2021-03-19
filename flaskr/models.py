@@ -243,9 +243,9 @@ class HalsteadMetrics(db.Model):
 class GraphType(enum.Enum):
     """Перечисление, которое хранит тип графовой визуализации"""
     #: CFG (Control Flow Graph) - граф потока управления
-    cfg = 'CFG'
+    CFG = 'CFG'
     #: DDG (Data Dependency Graph) - граф зависимости по данным
-    ddg = 'DDG'
+    DDG = 'DDG'
 
 
 class GraphVisualization(db.Model):

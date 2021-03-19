@@ -8,15 +8,15 @@ from flaskr.models import Directory
 from flaskr.models import RawMetrics
 from flaskr.models import HalsteadMetrics
 from flaskr.models import db
+from flaskr.models import GraphVisualization
+from flaskr.models import GraphType
 from flask import current_app
 from metrics import raw
 from metrics import halstead
 from cpgqls_client import CPGQLSClient
+from visualization import graphs
 import re
-
-cpg_client = CPGQLSClient('localhost:{port}'.format(
-    port=current_app.config['CPG_SERVER_PORT']
-    ))
+from flaskr.custom_async import get_set_event_loop
 
 def apply_args_to_url(url, **kwargs):
     """Применяет аргументы к URL с параметрами. Возвращает строку с URL и вставленными в него параметрами.
@@ -109,6 +109,29 @@ def _add_metrics_for_file(tree_obj, f):
                 file=f
         )
         db.session.add(halstead_metrics)
+
+        cpg_client = CPGQLSClient('localhost:{port}'.format(
+            port=current_app.config['CPG_SERVER_PORT']
+        ), event_loop=get_set_event_loop())
+        cfgs = graphs.cfg_for_code(cpg_client, content)
+        for func_name, dot in cfgs.items():
+            graph_vis = GraphVisualization(
+                    graph_type=GraphType.CFG,
+                    func_name=func_name,
+                    graph_dot=dot,
+                    file=f
+            )
+            db.session.add(graph_vis)
+
+        ddgs = graphs.cfg_for_code(cpg_client, content)
+        for func_name, dot in cfgs.items():
+            graph_vis = GraphVisualization(
+                    graph_type=GraphType.CFG,
+                    func_name=func_name,
+                    graph_dot=dot,
+                    file=f
+            )
+            db.session.add(graph_vis)
 
 
 def _add_tree_obj_to_db(o, parent_dir, project_id):

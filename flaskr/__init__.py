@@ -4,8 +4,6 @@ from flaskr.auth import auth
 from flaskr.api import api_bp
 from flaskr.auth import login_manager
 from flaskr.models import db
-import os
-import sys
 
 app = Flask(__name__)
 app.config.update(
@@ -15,9 +13,9 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Strict',
     SQLALCHEMY_DATABASE_URI='sqlite:///main.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    SQLALCHEMY_ECHO=True,
-    CPG_SERVER_PORT=5050
+    CPG_SERVER_PORT=5052
 )
+
 db.init_app(app)
 login_manager.init_app(app)
 
