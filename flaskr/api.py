@@ -418,10 +418,10 @@ class Metrics(Resource):
             return {'message': 'Веб-хук не был подключен к проекту.'}, 406
 
         for child in dirs:
+            parent = Directory.query.filter_by(dir_parent_id=parent.id, dir_name=child).first()
+
             if not parent:
                 return {'message': 'Директории с указанным именем не существует.'}, 404
-        
-            parent = Directory.query.filter_by(dir_parent_id=parent.id, dir_name=child).first()
 
         f = File.query.filter_by(dir_id=parent.id, file_name=filename).first()
 
