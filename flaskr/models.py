@@ -5,6 +5,7 @@
 """
 from flask_sqlalchemy import SQLAlchemy
 from flask import current_app
+import enum
 import datetime
 import jwt
 
@@ -192,6 +193,8 @@ class File(db.Model):
     raw_metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: halstead_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`HalsteadMetrics`
     halstead_metrics = db.relationship('HalsteadMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
+    #: graph_visualizations (*list*) - атрибут для задания связи один-к-одному, графовая визуализация файла :class:`GraphVisualization`
+    graph_visualizations = db.relationship('GraphVisualization', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
@@ -235,4 +238,29 @@ class HalsteadMetrics(db.Model):
     total_n1 = db.Column(db.Integer, nullable=False)
     #: total_n2 (*int*) - общее количество операндов N2
     total_n2 = db.Column(db.Integer, nullable=False)
+
+
+class GraphType(enum.Enum):
+    """Перечисление, которое хранит тип графовой визуализации"""
+    #: CFG (Control Flow Graph) - граф потока управления
+    cfg = 'CFG'
+    #: DDG (Data Dependency Graph) - граф зависимости по данным
+    ddg = 'DDG'
+
+
+class GraphVisualization(db.Model):
+    """Модель визуализации в виде графа, хранит свойства с различными 
+    описанием этой визуализации и саму визуализацию в dot формате:
+    *id*, *graph_type*, *func_name*, *graph_dot*
+    """
+    #: id (*int*) - идентификатор визуализации
+    id = db.Column(db.Integer, primary_key=True)
+    #: file_id (*int*) - идетификатор файла, для которого хранится визуализация
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='CASCADE'), nullable=False)
+    #: graph_type (:class:`GraphType`) - тип графа
+    graph_type = db.Column(db.Enum(GraphType), nullable=False)
+    #: func_name (*str*) - имя функции, для которой построен граф
+    func_name = db.Column(db.String(255), nullable=False)
+    #: graph_dot (*str*) - представление графа в DOT формате, которое хранится в строке
+    graph_dot = db.Column(db.Text(65535), nullable=False)
 

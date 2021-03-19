@@ -11,7 +11,12 @@ from flaskr.models import db
 from flask import current_app
 from metrics import raw
 from metrics import halstead
+from cpgqls_client import CPGQLSClient
 import re
+
+cpg_client = CPGQLSClient('localhost:{port}'.format(
+    port=current_app.config['CPG_SERVER_PORT']
+    ))
 
 def apply_args_to_url(url, **kwargs):
     """Применяет аргументы к URL с параметрами. Возвращает строку с URL и вставленными в него параметрами.

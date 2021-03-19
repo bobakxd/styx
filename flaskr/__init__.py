@@ -15,7 +15,8 @@ app.config.update(
     SESSION_COOKIE_SAMESITE='Strict',
     SQLALCHEMY_DATABASE_URI='sqlite:///main.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    SQLALCHEMY_ECHO=True
+    SQLALCHEMY_ECHO=True,
+    CPG_SERVER_PORT=5050
 )
 db.init_app(app)
 login_manager.init_app(app)
