@@ -383,6 +383,7 @@ class Metrics(Resource):
 
     @api.response(200, 'Success')
     @api.response(404, 'Проекта не существует')
+    @api.response(406, 'Веб-хук не был подключен')
     def get(self, username, project_name, path, metrics_type):
         """Возвращает представление с различными метриками файла.
 
@@ -412,6 +413,9 @@ class Metrics(Resource):
         filename = parts[-1]
 
         parent = Directory.query.filter_by(dir_name=None, project_id=project.id).first()
+
+        if not parent:
+            return {'message': 'Веб-хук не был подключен к проекту.'}, 406
 
         for child in dirs:
             if not parent:
