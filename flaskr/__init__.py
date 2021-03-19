@@ -14,7 +14,8 @@ app.config.update(
     REMEMBER_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE='Strict',
     SQLALCHEMY_DATABASE_URI='sqlite:///main.db',
-    SQLALCHEMY_TRACK_MODIFICATIONS=False
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SQLALCHEMY_ECHO=True
 )
 db.init_app(app)
 login_manager.init_app(app)

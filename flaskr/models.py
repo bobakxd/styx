@@ -168,9 +168,9 @@ class Directory(db.Model):
     #: формате
     git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
     #: files (*list*) - атрибут для задания связи один-ко-многим, список моделей файлов :class:`Fiel` директории
-    files = db.relationship('File', lazy=True, backref='parent_dir')
+    files = db.relationship('File', lazy=True, backref='parent_dir', cascade='all, delete', passive_deletes=True)
     #: dir_parent - директория-родитель :class:`Directory`
-    dir_parent = db.relationship('Directory', remote_side=[id])
+    dir_parent = db.relationship('Directory', remote_side=[id], cascade='all, delete')
 
     def __repr__(self):
         return '<Directory %r>' % self.dir_name
@@ -183,15 +183,15 @@ class File(db.Model):
     #: id (*int*) - идентификатор файла
     id = db.Column(db.Integer, primary_key=True)
     #: dir_id (*int*) - идентификатор директории файла
-    dir_id = db.Column(db.Integer, db.ForeignKey('directory.id'), nullable=False)
+    dir_id = db.Column(db.Integer, db.ForeignKey('directory.id', ondelete='CASCADE'), nullable=False)
     #: file_name (*str*) - имя файла
     file_name = db.Column(db.String(80), nullable=False)
     #: git_hash (*str*) - Git хеш содержимого файла, SHA-1 в hex формате
     git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
     #: raw_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`RawMetrics`
-    raw_metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file')
+    raw_metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: halstead_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`HalsteadMetrics`
-    halstead_metrics = db.relationship('HalsteadMetrics', uselist=False, lazy=True, backref='file')
+    halstead_metrics = db.relationship('HalsteadMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
@@ -205,7 +205,7 @@ class RawMetrics(db.Model):
     #: id (*int*) - идентификатор LOC-метрик
     id = db.Column(db.Integer, primary_key=True)
     #: file_id (*int*) - идетификатор файла, для которого хранятся метрики
-    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='CASCADE'), nullable=False)
     #: loc (*int*) - общее количество строк кода (LOC)
     loc = db.Column(db.Integer, nullable=False)
     #: lloc (*int*) - количество логических строк кода (LLOC)
@@ -226,7 +226,7 @@ class HalsteadMetrics(db.Model):
     #: id (*int*) - идентификатор метрик Холстеда
     id = db.Column(db.Integer, primary_key=True)
     #: file_id (*int*) - идетификатор файла, для которого хранятся метрики
-    file_id = db.Column(db.Integer, db.ForeignKey('file.id'), nullable=False)
+    file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='CASCADE'), nullable=False)
     #: unique_n1 (*int*) - количество уникальных операторов n1
     unique_n1 = db.Column(db.Integer, nullable=False)
     #: unique_n2 (*int*) - количество уникальных операндов n2
