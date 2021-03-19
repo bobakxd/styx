@@ -193,8 +193,8 @@ class File(db.Model):
     raw_metrics = db.relationship('RawMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: halstead_metrics (*list*) - атрибут для задания связи один-к-одному, метрики файла :class:`HalsteadMetrics`
     halstead_metrics = db.relationship('HalsteadMetrics', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
-    #: graph_visualizations (*list*) - атрибут для задания связи один-к-одному, графовая визуализация файла :class:`GraphVisualization`
-    graph_visualizations = db.relationship('GraphVisualization', uselist=False, lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
+    #: graph_visualizations (*list*) - атрибут для задания связи один-ко-многим, графовая визуализация файла :class:`GraphVisualization`
+    graph_visualizations = db.relationship('GraphVisualization', lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
 
     def __repr__(self):
@@ -246,6 +246,9 @@ class GraphType(enum.Enum):
     CFG = 'CFG'
     #: DDG (Data Dependency Graph) - граф зависимости по данным
     DDG = 'DDG'
+
+    def __str__(self):
+        return self._value_
 
 
 class GraphVisualization(db.Model):

@@ -4,6 +4,8 @@ from flaskr.auth import auth
 from flaskr.api import api_bp
 from flaskr.auth import login_manager
 from flaskr.models import db
+from sqlalchemy.engine import Engine
+from sqlalchemy import event
 
 app = Flask(__name__)
 app.config.update(
@@ -27,4 +29,10 @@ def init_db():
 app.register_blueprint(main)
 app.register_blueprint(auth)
 app.register_blueprint(api_bp)
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 

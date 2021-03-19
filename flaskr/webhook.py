@@ -123,16 +123,6 @@ def _add_metrics_for_file(tree_obj, f):
             )
             db.session.add(graph_vis)
 
-        ddgs = graphs.cfg_for_code(cpg_client, content)
-        for func_name, dot in cfgs.items():
-            graph_vis = GraphVisualization(
-                    graph_type=GraphType.CFG,
-                    func_name=func_name,
-                    graph_dot=dot,
-                    file=f
-            )
-            db.session.add(graph_vis)
-
 
 def _add_tree_obj_to_db(o, parent_dir, project_id):
     if o['type'] == 'blob':

@@ -9,6 +9,7 @@ from flaskr.models import User
 from flaskr.models import Project
 from flaskr.models import Directory
 from flaskr.models import File
+import flaskr.models
 from flask_restx import fields
 from flask_restx import reqparse
 from flask_restx import marshal
@@ -435,6 +436,76 @@ class Metrics(Resource):
                     Metrics.halstead_metrics_model), 200
         else:
             return {'message': 'Указанные метрики не вычислены для данного файла'}, 404
+
+
+@api.route('/<string:username>/<string:project_name>/<path:path>/visualization/graph/<string:graph_type>')
+@api.doc(params={'username': 'Имя пользователя', 'project_name': 'Название проекта', 'path': 'Путь к файлу', 'graph_type': 'Вид графа'}, description='Графовые визуализации файла')
+class GraphVisualization(Resource):
+    """Ресурс графовых визуализаций файла, URL ресурса: 
+    {username}/{project_name}/{path}/visualizaiton/graph/{graph_type}.
+
+    :Параметры запроса:
+       * *username* - имя пользователя
+       * *project_name* - название проекта
+       * *path* - путь к файлу
+       * *graph_type* - вид графа (cfg,..)
+
+    :Вид метрик:
+       * *cfg* - граф потока управления
+    """
+    graph_model = api.model('Graph', {
+        'func_name': fields.String(required=True, help='Имя функции'),
+        'type': fields.String(required=True, help='Тип графа', attribute='graph_type'),
+        'dot': fields.String(required=True, help='Представление графа в DOT формате', attribute='graph_dot'),
+    })
+
+    @api.response(200, 'Success')
+    @api.response(404, 'Проекта не существует')
+    @api.response(406, 'Веб-хук не был подключен')
+    def get(self, username, project_name, path, graph_type):
+        """Возвращает представление с графовыми визуализациями файла.
+
+        Обрабатывает GET запрос, возвращает представление с графовыми визуализацями для каждой функции файла. Тип графа указывается при помощи параметра *graph_type*. 
+
+        :Поля представления:
+           * func_name (*str*) - имя функции
+           * type (*str*) - тип графа (CFG,..)
+           * dot (*str*) - представление графа в DOT формате
+        """
+        user = User.query.filter_by(username=username).first()
+        project = Project.query.filter_by(user_id=user.id, project_name=project_name).first()
+
+        if not project:
+            return {'message': 'Проекта с указанным названием не существует.'}, 404
+
+        parts = path.split('/')
+        dirs = parts[:-1]
+        filename = parts[-1]
+
+        parent = Directory.query.filter_by(dir_name=None, project_id=project.id).first()
+
+        if not parent:
+            return {'message': 'Веб-хук не был подключен к проекту.'}, 406
+
+        for child in dirs:
+            parent = Directory.query.filter_by(dir_parent_id=parent.id, dir_name=child).first()
+
+            if not parent:
+                return {'message': 'Директории с указанным именем не существует.'}, 404
+
+        f = File.query.filter_by(dir_id=parent.id, file_name=filename).first()
+
+        if not f:
+            return {'message': 'Файла с указанным именем не существует.'}, 404
+
+
+        if graph_type == 'cfg':
+            vizs = flaskr.models.GraphVisualization.query.filter_by(
+                    file_id=f.id,
+                    graph_type=flaskr.models.GraphType.CFG).all()
+            return marshal(vizs, GraphVisualization.graph_model), 200
+        else:
+            return {'message': 'Указанный тип графа не построен для данного файла'}, 404
 
 
 api.add_resource(UserSettings, '/<string:username>/settings', endpoint='user_settings_resource')
