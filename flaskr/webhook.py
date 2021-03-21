@@ -82,6 +82,14 @@ def decode_content(content, encoding):
 
 
 def _add_metrics_for_file(tree_obj, f):
+    """Добавляет метрики для файла из дерева репозитория.
+
+    Подсчитывает метрики и строит визуализации для файла *f*. Создает модели метрик (:class:`flaskr.models.RawMetrics`, :class:`flaskr.models.HalsteadMetrics`) и модели визуализаций (:class:`flaskr.models.GraphVisualization`) для файла *f*.
+
+    :param dict tree_obj: узел из дерева коммита репозитория
+    :param f: модель файла
+    :type f: :class:`flaskr.models.File`
+    """
     if re.match(r'.+\.c$', tree_obj['path']):
         blob_response = requests.get(tree_obj['url'])
         blob_body = blob_response.json()
@@ -125,6 +133,18 @@ def _add_metrics_for_file(tree_obj, f):
 
 
 def _add_tree_obj_to_db(o, parent_dir, project_id):
+    """Добавляет узел дерева коммита в БД.
+
+    Если узел дерева типа **blob**, то создает модель файла :class:`flaskr.models.File`. Для данного файла добавляются метрики в БД при помощи функции :func:`_add_metrics_for_file`.
+
+    Если узел дерева типа **tree**, то создает модель директории :class:`flaskr.models.Directory`.
+
+    :param dict o: узел из дерева коммита репозитория
+    :param parent_dir: родительская директория узла
+    :type parent_dir: :class:`flaskr.models.Directory`
+    :param int project_id: идентификатор проекта
+    :returns: добавленная модель файла или директории, None в случае, если узел не был добавлен
+    """
     if o['type'] == 'blob':
         f = File(file_name=o['path'],
                 parent_dir=parent_dir,
@@ -147,6 +167,17 @@ def _add_tree_obj_to_db(o, parent_dir, project_id):
 
 
 def _update_tree_obj_in_db(o, parent_dir, project_id):
+    """Обновляет узел дерева коммита в БД.
+
+    Если узел дерева типа **blob** и соответствующей модели нет в БД, то создает модель файла :class:`flaskr.models.File`. Для данного файла обновляются метрики в БД при помощи функции :func:`_add_metrics_for_file`.
+
+    Если узел дерева типа **tree** и соответстующей модели нет в БД, то создает модель директории :class:`flaskr.models.Directory`.
+
+    :param dict o: узел из дерева коммита репозитория
+    :param parent_dir: родительская директория узла
+    :type parent_dir: :class:`flaskr.models.Directory`
+    :returns: модель файла или директории, если произошли изменения, None в случае, если узел не был изменен
+    """
     if o['type'] == 'blob':
         f = File.query.filter_by(
                 file_name=o['path'],
@@ -188,12 +219,14 @@ def _update_tree_obj_in_db(o, parent_dir, project_id):
  
 
 def add_tree_objs_to_db(tree_url, project_id):
-    """Обходит дерево коммита при помощи Github API.
+    """Обходит дерево коммита при помощи Github API и добавляет узлы в БД.
 
     В Github API есть ресурс для получения дерева файлов и директорий коммита:
     `https://api.github.com/repos/{user}/{repo}/git/trees{/sha}`
 
     URL с SHA-хешом соответстующего дерева передается в *tree_url*.
+
+    Обход дерева производится при помощи функции :func:`_traverse`, в параметр *callback* передается функция :func:`_add_tree_obj_to_db`.
 
     :param string tree_url: URL дерева
     :param int project_id: идентификатор проекта
@@ -212,12 +245,14 @@ def add_tree_objs_to_db(tree_url, project_id):
 
 
 def update_tree_objs_in_db(tree_url, project_id):
-    """Обходит дерево коммита при помощи Github API.
+    """Обходит дерево коммита при помощи Github API и обновляет узлы в БД.
 
     В Github API есть ресурс для получения дерева файлов и директорий коммита:
     `https://api.github.com/repos/{user}/{repo}/git/trees{/sha}`
 
     URL с SHA-хешом соответстующего дерева передается в *tree_url*.
+
+    Обход дерева производится при помощи функции :func:`_traverse`, в параметр *callback* передается функция :func:`_update_tree_obj_in_db`.
 
     :param string tree_url: URL дерева
     :param int project_id: идентификатор проекта
@@ -238,7 +273,7 @@ def update_tree_objs_in_db(tree_url, project_id):
 def _traverse(tree, parent_dir, project_id, callback):
     """Вспомогательная функция, которая используется для реализации рекурсивного обхода дерева.
 
-    Данная функция используется функцией :func:`traverse_tree`. Функция обходит рекурсивно дерево, критерием прерывания рекурсии являются узлы дерева, которые имеют тип (поле *type*) blob (файл). То есть, если узел имеет тип tree (директория), то обход продолжается для этой директории.
+    Данная функция используется функциями :func:`add_tree_objs_to_db` и :func:`update_tree_objs_in_db`. Функция обходит рекурсивно дерево, критерием прерывания рекурсии являются узлы дерева, которые имеют тип (поле *type*) blob (файл). То есть, если узел имеет тип tree (директория), то обход продолжается для этой директории. При обходе дерева для каждого узла вызывается функция *callback*.
 
     :param dict tree: JSON-объект дерева
     :param parent_dir: родительская директория

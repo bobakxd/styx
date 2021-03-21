@@ -18,3 +18,19 @@
 .. autoclass:: flaskr.models.File
    :special-members:
    :members:
+
+.. autoclass:: flaskr.models.RawMetrics
+   :special-members:
+   :members:
+
+.. autoclass:: flaskr.models.HalsteadMetrics
+   :special-members:
+   :members:
+
+.. autoclass:: flaskr.models.GraphType
+   :special-members:
+   :members:
+
+.. autoclass:: flaskr.models.GraphVisualization
+   :special-members:
+   :members:

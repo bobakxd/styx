@@ -5,3 +5,9 @@ flask-restx>=0.2.0
 PyJWT>=2.0.1
 Sphinx>=3.5.1
 sphinx-rtd-theme>=0.5.1
+--index-url https://test.pypi.org/simple/ \
+--extra-index-url https://pypi.org/simple 
+metrics-imspeedwagon==0.0.2 
+--index-url https://test.pypi.org/simple/ \
+--extra-index-url https://pypi.org/simple 
+visualization-imspeedwagon==0.0.2 

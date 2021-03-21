@@ -209,11 +209,11 @@ class RawMetrics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     #: file_id (*int*) - идетификатор файла, для которого хранятся метрики
     file_id = db.Column(db.Integer, db.ForeignKey('file.id', ondelete='CASCADE'), nullable=False)
-    #: loc (*int*) - общее количество строк кода (LOC)
+    #: loc (*int*) - общее количество строк кода
     loc = db.Column(db.Integer, nullable=False)
-    #: lloc (*int*) - количество логических строк кода (LLOC)
+    #: lloc (*int*) - количество логических строк кода
     lloc = db.Column(db.Integer, nullable=False)
-    #: ploc (*int*) - количество физических строк кода (PLOC)
+    #: ploc (*int*) - количество физических строк кода
     ploc = db.Column(db.Integer, nullable=False)
     #: comments (*int*) - количество строк комментариев
     comments = db.Column(db.Integer, nullable=False)
