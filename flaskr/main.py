@@ -52,6 +52,14 @@ def date_format(value):
     return value.strftime('%-d %B, %Y г.') 
 
 
+@main.app_template_filter()
+def time_format(value):
+    """Фильтр, который преобразовывает DateTime в строку формата 
+    %-d %B в %H:%M
+    """
+    return value.strftime('%-d %B в %H:%M') 
+
+
 @main.route('/<username>')
 @login_required
 def user_panel(username):
