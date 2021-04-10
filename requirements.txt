@@ -6,4 +6,4 @@ PyJWT>=2.0.1
 Sphinx>=3.5.1
 sphinx-rtd-theme>=0.5.1
 git+https://gitlab.com/imspeedwagon/metrics.git#egg=metrics-imspeedwagon
-git+https://gitlab.com/imspeedwagon/visualization.git#egg=visualization-imspeedwagon
+#git+https://gitlab.com/imspeedwagon/visualization.git#egg=visualization-imspeedwagon

@@ -13,8 +13,8 @@ from flaskr.models import GraphType
 from flask import current_app
 from metrics import raw
 from metrics import halstead
-from cpgqls_client import CPGQLSClient
-from visualization import graphs
+#from cpgqls_client import CPGQLSClient
+from visualization import graph
 import re
 from flaskr.custom_async import get_set_event_loop
 
@@ -103,7 +103,7 @@ def _add_metrics_for_file(tree_obj, f):
                 ploc=calc_raw_metrics.ploc,
                 comments=calc_raw_metrics.comments,
                 blanks=calc_raw_metrics.blanks,
-                file=f
+                file_id=f.id
         )
         db.session.add(raw_metrics)
 
@@ -114,20 +114,22 @@ def _add_metrics_for_file(tree_obj, f):
                 unique_n2=calc_halstead_metrics.n2,
                 total_n1=calc_halstead_metrics.N1,
                 total_n2=calc_halstead_metrics.N2,
-                file=f
+                file_id=f.id
         )
         db.session.add(halstead_metrics)
 
-        cpg_client = CPGQLSClient('localhost:{port}'.format(
-            port=current_app.config['CPG_SERVER_PORT']
-        ), event_loop=get_set_event_loop())
-        cfgs = graphs.cfg_for_code(cpg_client, content)
+        #cpg_client = CPGQLSClient('localhost:{port}'.format(
+        #    port=current_app.config['CPG_SERVER_PORT']
+        #), event_loop=get_set_event_loop())
+        current_app.logger.info("file: ")
+        current_app.logger.info(tree_obj['path'])
+        cfgs = graph.cfg_for_code(content, tree_obj['path'])
         for func_name, dot in cfgs.items():
             graph_vis = GraphVisualization(
                     graph_type=GraphType.CFG,
                     func_name=func_name,
                     graph_dot=dot,
-                    file=f
+                    file_id=f.id
             )
             db.session.add(graph_vis)
 
@@ -150,9 +152,10 @@ def _add_tree_obj_to_db(o, parent_dir, project_id):
                 parent_dir=parent_dir,
                 git_hash=o['sha'])
         
+        db.session.add(f)
+        db.session.flush()
         _add_metrics_for_file(o, f)
 
-        db.session.add(f)
         return f
     
     if o['type'] == 'tree':
@@ -188,8 +191,9 @@ def _update_tree_obj_in_db(o, parent_dir, project_id):
             f = File(file_name=o['path'],
                     parent_dir=parent_dir,
                     git_hash=o['sha'])
-            _add_metrics_for_file(o, f)
             db.session.add(f)
+            db.session.flush()
+            _add_metrics_for_file(o, f)
 
         if o['sha'] != f.git_hash:
             _add_metrics_for_file(o, f)

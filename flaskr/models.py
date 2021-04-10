@@ -8,8 +8,9 @@ from flask import current_app
 import enum
 import datetime
 import jwt
+import sys
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={'autoflush': False})
 
 class User(db.Model):
     """Модель пользователя, хранит свойства с информацией о пользователе:
@@ -41,20 +42,20 @@ class User(db.Model):
         return '%s<%d>' % (self.username, self.id)
 
     def is_authenticated(self):
-        from flaskr import auth
         """Возвращает признак (*bool*) того, что пользователь аутентифицирован."""
-        if self.get_id() in auth.get_sessions():
-            return auth.get_sessions()[self.get_id()]
+        from flaskr.auth import get_sessions
+        if self.get_id() in get_sessions():
+            return get_sessions()[self.get_id()]
         return False
 
     def set_authenticated(self, value):
-        from flaskr import auth
         """Возвращает признак (*bool*) того, что пользователь аутентифицирован."""
         """Устанавливает признак *value* аутентификации пользователя.
 
         :param bool value: признак аутентификации
         """
-        auth.get_sessions()[self.get_id()] = value
+        from flaskr.auth import get_sessions
+        get_sessions()[self.get_id()] = value
 
     def is_anonymous(self):
         """Признак анонимности пользователя. Возвращает False, т.к. все 
