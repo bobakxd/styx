@@ -21,6 +21,7 @@ from sqlalchemy.exc import IntegrityError
 from flask_restx import inputs
 from flaskr import webhook
 from flask import current_app
+import datetime
 
 #: **api_bp** - это Blueprint, который содержит представления ресурсов API приложения.
 #:
@@ -254,6 +255,7 @@ class Webhook(Resource):
             if project.hook_id is not None:
                 Directory.query.filter_by(dir_name=None, project_id=project.id).delete()
                 project.hook_id = None
+                project.update_time = datetime.datetime.utcnow()
                 db.session.commit()
                 return {'message': 'Хук был успешно сброшен. Теперь к проекту можно подключить новый веб-хук.', 'self-url': self._get_self_url(username, project_name)}, 200
         else:

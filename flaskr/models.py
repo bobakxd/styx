@@ -143,6 +143,8 @@ class Project(db.Model):
     project_name = db.Column(db.String(80), nullable=False)
     #: description (*str*) - описание проекта
     description = db.Column(db.String(250))
+    # update_time (*DateTime*) - время последнего обновления проекта
+    update_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     #: hook_id (*int*) - идентификатор веб-хука подключенного к проекту
     hook_id = db.Column(db.Integer)
     #: user (:class:`User`) - ссылка на модель владельца проекта (пользователя)

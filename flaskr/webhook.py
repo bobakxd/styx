@@ -10,6 +10,7 @@ from flaskr.models import HalsteadMetrics
 from flaskr.models import db
 from flaskr.models import GraphVisualization
 from flaskr.models import GraphType
+from flaskr.models import Project
 from flask import current_app
 from metrics import raw
 from metrics import halstead
@@ -17,6 +18,7 @@ from metrics import halstead
 from visualization import graph
 import re
 from flaskr.custom_async import get_set_event_loop
+import datetime
 
 def apply_args_to_url(url, **kwargs):
     """Применяет аргументы к URL с параметрами. Возвращает строку с URL и вставленными в него параметрами.
@@ -238,6 +240,9 @@ def add_tree_objs_to_db(tree_url, project_id):
     response = requests.get(tree_url)
     body = response.json()
 
+    p = Project.query.filter_by(project_id=project_id).first()
+    p.update_time = datetime.datetime.utcnow()
+
     root_dir = Directory(project_id=project_id,
             git_hash=body['sha'])
 
@@ -270,6 +275,8 @@ def update_tree_objs_in_db(tree_url, project_id):
             ).first()
 
     if body['sha'] != d.git_hash:
+        p = Project.query.filter_by(project_id=project_id).first()
+        p.update_time = datetime.datetime.utcnow()
         _traverse(body['tree'], d, project_id, _update_tree_obj_in_db)
         db.session.commit()
 
