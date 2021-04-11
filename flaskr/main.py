@@ -4,10 +4,12 @@
 from flask import Blueprint
 from flask import render_template
 from flask_login import login_required
+from flask import abort
 import hashlib
 from flaskr.models import User
 from flaskr.models import Project
 from flaskr.models import Token
+from flaskr.models import Directory
 import locale
 from flask import request
 from flask import flash
@@ -60,6 +62,22 @@ def time_format(value):
     return value.strftime('%-d %B в %H:%M') 
 
 
+@main.app_template_filter()
+def dir_path(d):
+    """Фильтр, который возвращает путь относительно корня проекта 
+    для директории *d*
+    """
+    path=''
+    while True:
+        if not d.dir_name:
+            #path = '/' + path
+            return path
+        else:
+            path = d.dir_name + '/' + path
+
+        d = d.dir_parent
+
+
 @main.route('/<username>')
 @login_required
 def user_panel(username):
@@ -94,6 +112,48 @@ def user_settings(username):
             username=username).first()
     return render_template('user_panel/settings.html', 
             user=user, gravatar_avatar_url=gravatar_avatar_url)
+
+
+@main.route('/<username>/<project_name>')
+@main.route('/<username>/<project_name>/<path:path>')
+@login_required
+def project(username, project_name, path=None):
+    """Представление (view) с панелью настроек пользователя.
+
+    Принимает параметр *username*, т.к. для каждой панели настроек 
+    пользователя выделяется отдельный ресурс /<*username*>.
+
+    :param str username: имя пользователя
+    """
+    user = User.query.filter_by(
+            username=username).first()
+    user_project = Project.query.filter_by(
+            project_name=project_name,
+            user_id=user.id).first()
+
+    if path is not None:
+        dirs = path.split('/')
+
+        d = Directory.query.filter_by(dir_name=None, project_id=user_project.id).first()
+
+        if not d:
+            abort(404, 'Директории с указанными названием не существует')
+
+        for child in dirs:
+            if not child:
+                continue
+
+            d = Directory.query.filter_by(dir_parent_id=d.id, dir_name=child).first()
+            if not d:
+                abort(404, 'Директории с указанными названием не существует')
+    else:
+        d = Directory.query.filter_by(
+                dir_name=None,
+                project_id=user_project.id).first()
+            
+    return render_template('user_panel/project.html', 
+            user=user, gravatar_avatar_url=gravatar_avatar_url, 
+            project=user_project, project_dir=d)
 
 
 @main.route('/<username>/settings/tokens', methods=['GET', 'POST'])

@@ -1,0 +1,75 @@
+{% extends "user_panel/index.html" %}
+{% block title %}{{ user.username }} - {{ project.project_name }}{% endblock %}
+{% block content %}
+<div class="border-bottom project-container">
+	<div class="container py-3">
+		<section>
+			<div class="border-bottom">
+				<ul class="breadcrumbs pb-3 m-0">
+					<li>
+						<a href="{{ url_for('.user_panel', username=user.username) }}">{{ user.username }}</a>
+						<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
+					</li>
+					<li>
+						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name) }}">{{ project.project_name }}</a>
+						{% if project_dir.dir_name %}
+						<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
+						{% endif %}
+					</li>
+					{% set dirs = (project_dir|dir_path).split('/') %}
+					{% for d in dirs[:-2] %}
+					<li>
+						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:loop.index])) }}">{{ d }}</a>
+						<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
+					</li>
+					{% endfor %}
+					{% if dirs[-2] %}
+					<li>
+						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:-1])) }}">{{ dirs[-2] }}</a>
+					</li>
+					{% endif %}
+				</ul>
+			</div>
+			<div class="project-header d-flex">
+				<div class="project-avatar p-3 me-3 my-3">
+					<div class="project-letter">{{ project.project_name[0]|upper }}</div>
+				</div>
+				<div class="project-info d-flex flex-column justify-content-center">
+					<h1 class="fs-4 fw-bold mb-1">{{ project.project_name }}</h1>
+					<p class="mb-0">ID проекта: {{ project.id }}</p>
+				</div>
+			</div>
+			<p class="project-description">
+				{{ project.description }}
+			</p>
+			<div class="tree-container">
+				<div class="table-holder border rounded-2">
+				<table class="table table-hover m-0">
+					<thead class="table-secondary">
+						<tr>
+							<th class="col">Имя файла или директории</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for d in project_dir.child_dirs %}
+						<tr>
+							<td>
+								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=d|dir_path) }}">{{ d.dir_name }}</a>
+							</td>
+						</tr>
+						{% endfor %}
+						{% for f in project_dir.files %}
+						<tr>
+							<td>
+								<a href="#">{{ f.file_name }}</a>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+{% endblock %}

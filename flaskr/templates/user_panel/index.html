@@ -49,12 +49,12 @@
 		<ul class="list-group list-group-flush">
 		{% for project in projects %}
 			<li class="list-group-item d-flex">
-				<a href="#" class="project-avatar p-3 me-2 flex-grow-0 flex-shrink-0 align-self-center">
+				<a href="{{ url_for('.project', username=user.username, project_name=project.project_name) }}" class="project-avatar p-3 me-2 flex-grow-0 flex-shrink-0 align-self-center">
 					<div class="project-letter">{{ project.project_name[0]|upper }}</div>
 				</a>
 				<div class="w-100 d-flex justify-content-end p-1">
 					<div class="m-0 p-0 flex-grow-1">
-						<h4 class="project-title fs-6 fw-bold mb-1"><a href="#">{{ project.project_name }}</a></h4>
+						<h4 class="project-title fs-6 fw-bold mb-1"><a href="{{ url_for('.project', username=user.username, project_name=project.project_name) }}">{{ project.project_name }}</a></h4>
 						{% if project.description|length > 100 %}
 						<p class="fs-6 m-0">{{ project.description[:100] }}...</p>
 						{% else %}

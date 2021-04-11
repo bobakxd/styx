@@ -49,3 +49,68 @@
 .project-title a:hover {
 	text-decoration: underline;
 }
+
+/*
+ * Project
+ */
+
+.project-container {
+	background: #fff;
+}
+
+.project-header .project-avatar {
+	width: 65px;
+	height: 65px;
+}
+
+.project-header .project-letter {
+	font-size: 30px;
+	line-height: 30px;
+}
+
+.breadcrumbs {
+	padding-left: 0;
+}
+
+.breadcrumbs li {
+	line-height: 1rem;
+	font-size: 1rem!important;
+}
+
+.breadcrumbs-delimeter {
+	font-size: .85rem!important;
+}
+
+.breadcrumbs * {
+	display: inline-block;
+}
+
+.breadcrumbs a {
+	text-decoration: none;
+	color: #000;
+}
+
+.breadcrumbs a:hover {
+	text-decoration: underline;
+}
+
+/*
+ * Project > Project table
+ */
+
+.table-holder > .table > thead > tr > th {
+	border-bottom: none;
+}
+
+.table-holder > .table > tbody > tr:last-child > td {
+	border-bottom: none;
+}
+
+.table-holder > .table > tbody > tr > td > a {
+	color: #000;
+	text-decoration: none;
+}
+
+.table-holder > .table > tbody > tr > td > a:hover {
+	text-decoration: underline;
+}
