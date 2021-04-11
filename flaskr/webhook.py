@@ -240,7 +240,7 @@ def add_tree_objs_to_db(tree_url, project_id):
     response = requests.get(tree_url)
     body = response.json()
 
-    p = Project.query.filter_by(project_id=project_id).first()
+    p = Project.query.filter_by(id=project_id).first()
     p.update_time = datetime.datetime.utcnow()
 
     root_dir = Directory(project_id=project_id,
@@ -275,7 +275,7 @@ def update_tree_objs_in_db(tree_url, project_id):
             ).first()
 
     if body['sha'] != d.git_hash:
-        p = Project.query.filter_by(project_id=project_id).first()
+        p = Project.query.filter_by(id=project_id).first()
         p.update_time = datetime.datetime.utcnow()
         _traverse(body['tree'], d, project_id, _update_tree_obj_in_db)
         db.session.commit()

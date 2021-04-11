@@ -171,10 +171,16 @@ class Directory(db.Model):
     #: git_hash (*str*) - Git хеш содержимого директории, SHA-1 в hex 
     #: формате
     git_hash = db.Column(db.String(40), nullable=False) # Git использует SHA-1 и колонка хранит значения в hex формате
-    #: files (*list*) - атрибут для задания связи один-ко-многим, список моделей файлов :class:`Fiel` директории
+    #: files (*list*) - атрибут для задания связи один-ко-многим, список моделей файлов :class:`File` директории
     files = db.relationship('File', lazy=True, backref='parent_dir', cascade='all, delete', passive_deletes=True)
+    #dir_parent = db.relationship('Directory', remote_side=[id], cascade='all, delete')
     #: dir_parent - директория-родитель :class:`Directory`
-    dir_parent = db.relationship('Directory', remote_side=[id], cascade='all, delete')
+    #: child_dirs - дочерние директории :class:`Directory`
+    child_dirs = db.relationship('Directory', 
+            backref=db.backref('dir_parent', remote_side=[id]), 
+            cascade='all, delete', 
+            passive_deletes=True
+            )
 
     def __repr__(self):
         return '<Directory %r>' % self.dir_name
