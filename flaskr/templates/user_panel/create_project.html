@@ -1,0 +1,21 @@
+{% extends "user_panel/index.html" %}
+{% block title %}{{ username }}{% endblock %}
+{% block content %}
+<div class="user-panel-main-block">
+	<section class="container py-3">
+		<h1 class="fs-4 pb-2 border-bottom">Создать проект</h1>
+		<form action="{{ request.path }}" method="POST">
+			<div class="mb-3">
+				<label for="projectName" class="form-label">Название проекта</label>
+				<input type="text" placeholder="Введите название проекта..." class="form-control" id="projectName" aria-describedby="projectNameHelp" name="name">
+				<div id="projectNameHelp" class="form-text">Название может содержать только латинские буквы (нижний регистр) и нижний пробел.</div>
+			</div>
+			<div class="mb-3">
+				<label for="projectDescription" class="form-label">Описание проекта</label>
+				<textarea placeholder="Введите описание проекта..." class="form-control" rows="3" id="projectDescription" name="description"></textarea>
+			</div>
+			<button type="submit" class="btn btn-primary">Создать проект</button>
+		</form>
+	</section>
+</div>
+{% endblock %}

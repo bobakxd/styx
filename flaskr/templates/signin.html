@@ -34,20 +34,20 @@
 						<form method="POST" class="signin-form">
 							{% block form %}
 							<div class="mb-4 form-group">
-								<label for="signinCredentials" class="form-label">
+								<label for="signinCredentials" class="form-label signin-form-label">
 									<span class="material-icons">
 										person
 									</span>
 								</label>
-								<input type="text" class="form-control shadow-none rounded-0" id="signinCredentials" placeholder="Имя пользователя или email" name="credential" value="{{ credential }}">
+								<input type="text" class="form-control signin-form-control shadow-none rounded-0" id="signinCredentials" placeholder="Имя пользователя или email" name="credential" value="{{ credential }}">
 							</div>
 							<div class="mb-4 form-group">
-								<label for="signinPassw" class="form-label">
+								<label for="signinPassw" class="form-label signin-form-label">
 									<span class="material-icons">
 										lock
 									</span>
 								</label>
-								<input type="password" class="form-control shadow-none rounded-0" id="signinPassw" placeholder="Пароль" name="passw">
+								<input type="password" class="form-control signin-form-control shadow-none rounded-0" id="signinPassw" placeholder="Пароль" name="passw">
 							</div>
 							<div class="mb-4">
 								<input type="checkbox" class="form-check-input shadow-none" id="signinRememberMe">

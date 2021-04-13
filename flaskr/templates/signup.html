@@ -25,36 +25,36 @@
 {% block form_title %}Зарегистрироваться{% endblock %}
 {% block form %}
 <div class="mb-4 form-group">
-	<label for="signupUsername" class="form-label">
+	<label for="signupUsername" class="form-label signin-form-label">
 		<span class="material-icons">
 			person
 		</span>
 	</label>
-	<input type="text" class="form-control shadow-none rounded-0" name="username" id="signupUsername" placeholder="Имя пользователя" value="{{ username }}">
+	<input type="text" class="form-control signin-form-control shadow-none rounded-0" name="username" id="signupUsername" placeholder="Имя пользователя" value="{{ username }}">
 </div>
 <div class="mb-4 form-group">
-	<label for="signupEmail" class="form-label">
+	<label for="signupEmail" class="form-label signin-form-label">
 		<span class="material-icons">
 			email
 		</span>
 	</label>
-	<input type="text" class="form-control shadow-none rounded-0" id="signupEmail" placeholder="Email адрес" name="email" value="{{ email }}">
+	<input type="text" class="form-control signin-form-control shadow-none rounded-0" id="signupEmail" placeholder="Email адрес" name="email" value="{{ email }}">
 </div>
 <div class="mb-4 form-group">
-	<label for="signupPassw" class="form-label">
+	<label for="signupPassw" class="form-label signin-form-label">
 		<span class="material-icons">
 			lock
 		</span>
 	</label>
-	<input type="password" class="form-control shadow-none rounded-0" id="signupPassw" placeholder="Пароль" name="passw">
+	<input type="password" class="form-control signin-form-control shadow-none rounded-0" id="signupPassw" placeholder="Пароль" name="passw">
 </div>
 <div class="mb-4 form-group">
-	<label for="signupRepeat" class="form-label">
+	<label for="signupRepeat" class="form-label signin-form-label">
 		<span class="material-icons">
 			lock_open
 		</span>
 	</label>
-	<input type="password" class="form-control shadow-none rounded-0" id="signupRepeat" placeholder="Повторите пароль" name="repeat">
+	<input type="password" class="form-control signin-form-control shadow-none rounded-0" id="signupRepeat" placeholder="Повторите пароль" name="repeat">
 </div>
 <button type="submit" class="btn btn-primary mt-3 shadow-none">Зарегистрироваться</button>
 {% endblock %}
