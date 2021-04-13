@@ -114,3 +114,26 @@
 .table-holder > .table > tbody > tr > td > a:hover {
 	text-decoration: underline;
 }
+
+/*
+ * Project > File info
+ */
+
+.file-ico {
+	font-size: 1.2rem!important;
+	position: relative;
+	top: .1rem;
+}
+
+.file-details-header {
+	background: #f8f8f8;
+}
+
+.metrics-buttons {
+	margin-left: auto;
+}
+
+.file-func-select {
+	display: inline-block;
+	width: auto;
+}

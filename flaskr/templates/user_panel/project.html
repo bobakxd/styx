@@ -6,6 +6,7 @@
 		<section>
 			<div class="border-bottom">
 				<ul class="breadcrumbs pb-3 m-0">
+					{% block breadcrumbs %}
 					<li>
 						<a href="{{ url_for('.user_panel', username=user.username) }}">{{ user.username }}</a>
 						<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
@@ -19,17 +20,19 @@
 					{% set dirs = (project_dir|dir_path).split('/') %}
 					{% for d in dirs[:-2] %}
 					<li>
-						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:loop.index])) }}">{{ d }}</a>
+						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:loop.index]), type='dir') }}">{{ d }}</a>
 						<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
 					</li>
 					{% endfor %}
 					{% if dirs[-2] %}
 					<li>
-						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:-1])) }}">{{ dirs[-2] }}</a>
+						<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path='/'.join(dirs[:-1]), type='dir') }}">{{ dirs[-2] }}</a>
 					</li>
 					{% endif %}
+					{% endblock %}
 				</ul>
 			</div>
+			{% block project_content %}
 			<div class="project-header d-flex">
 				<div class="project-avatar p-3 me-3 my-3">
 					<div class="project-letter">{{ project.project_name[0]|upper }}</div>
@@ -54,14 +57,14 @@
 						{% for d in project_dir.child_dirs %}
 						<tr>
 							<td>
-								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=d|dir_path) }}">{{ d.dir_name }}</a>
+								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=d|dir_path, type='dir') }}">{{ d.dir_name }}</a>
 							</td>
 						</tr>
 						{% endfor %}
 						{% for f in project_dir.files %}
 						<tr>
 							<td>
-								<a href="#">{{ f.file_name }}</a>
+								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=project_dir|dir_path+f.file_name, type='file') }}">{{ f.file_name }}</a>
 							</td>
 						</tr>
 						{% endfor %}
@@ -69,6 +72,7 @@
 				</table>
 				</div>
 			</div>
+			{% endblock %}
 		</section>
 	</div>
 </div>

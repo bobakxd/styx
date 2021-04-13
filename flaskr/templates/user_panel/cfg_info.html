@@ -1,0 +1,22 @@
+{% extends "user_panel/file_info.html" %}
+{% block buttons %}
+<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file') }}" class="btn btn-primary" aria-current="page">LOC метрики</a>
+<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file', info='halstead') }}" class="btn btn-primary" aria-current="page">Метрики Холстеда</a>
+<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file', info='cfg') }}" class="btn btn-primary active" aria-current="page">CFG</a>
+{% endblock %}
+{% block details_content %}
+<h3 class="fs-5 fw-bold mb-4">Граф потока управления функции 
+	<select onchange="location = this.options[this.selectedIndex].value;" class="form-select file-func-select" aria-label="Имя функции">
+		{% for v in visualizations %}
+		<option value="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file', info='cfg', func_name=v.func_name) }}"
+			{% if v.func_name == func_name %}
+			selected
+			{% endif %}
+		>{{ v.func_name }}</option>
+		{% endfor %}
+	</select>
+</h3>
+<div class="text-center">
+{{ chart_output | safe }}
+</div>
+{% endblock %}

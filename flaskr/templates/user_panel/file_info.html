@@ -1,0 +1,72 @@
+{% extends "user_panel/project.html" %}
+{% block title %}{{ user.username }} - {{ project.project_name }} - {{ file_path }}{% endblock %}
+{% block breadcrumbs %}
+{{ super() }}
+<li>
+	<p class="breadcrumbs-delimeter m-0 mx-1">&gt;</p>
+	<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file') }}">{{ file.file_name }}</a>
+</li>
+{% endblock %}
+{% block project_content %}
+<div class="file-info my-3">
+	<h1 class="fs-4 fw-bold mb-1"> 
+		<span class="file-ico material-icons">
+			description
+		</span>
+		{{ file.file_name }}
+	</h1>
+	<p class="mb-0">ID файла: {{ file.id }}</p>
+</div>
+<div class="file-details border rounded">
+	<div class="file-details-header border-bottom p-2 d-flex align-items-center">
+		<h2 class="m-0 fs-6 fw-bold">Информация о файле</h2>
+		<div class="metrics-buttons btn-group">
+			{% block buttons %}
+			<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file') }}" class="btn btn-primary active" aria-current="page">LOC метрики</a>
+			<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file', info='halstead') }}" class="btn btn-primary" aria-current="page">Метрики Холстеда</a>
+			<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=file_path, type='file', info='cfg') }}" class="btn btn-primary" aria-current="page">CFG</a>
+			{% endblock %}
+		</div>
+	</div>
+	<div class="file-details-content p-3">
+		{% block details_content %}
+		<table class="table">
+			<thead>
+				<tr>
+					<th scope="col">Название метрики</th>
+					<th scope="col">Описание</th>
+					<th scope="col">Значение</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>LOC</td>
+					<td>Общее количество строк кода</td>
+					<td>{{ raw.loc }}</td>
+				</tr>
+				<tr>
+					<td>LLOC</td>
+					<td>Количество логических строк кода</td>
+					<td>{{ raw.lloc }}</td>
+				</tr>
+				<tr>
+					<td>PLOC</td>
+					<td>Количество физических строк кода</td>
+					<td>{{ raw.ploc }}</td>
+				</tr>
+				<tr>
+					<td>Comments</td>
+					<td>Количество строк комментариев</td>
+					<td>{{ raw.comments }}</td>
+				</tr>
+				<tr>
+					<td>Blanks</td>
+					<td>Количество пустых строк</td>
+					<td>{{ raw.blanks }}</td>
+				</tr>
+			</tbody>
+		</table>
+		{% endblock %}
+	</div>
+</div>
+{% endblock %}
