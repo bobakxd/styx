@@ -116,7 +116,7 @@ def logout():
     user = current_user
     user.set_authenticated(False)
     logout_user()
-    return 'Вы успешно вышли!'
+    return redirect(url_for('.signin'))
 
 
 def register_user(username, email, passw):

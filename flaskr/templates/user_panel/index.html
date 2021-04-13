@@ -8,7 +8,7 @@
 {% block main %}
 <header class="navbar navbar-expand-sm navbar-dark bg-dark">
 	<div class="container">
-		<a class="navbar-brand" href="#">Проект Styx</a>
+		<a class="navbar-brand" href="{{ url_for('.index') }}">Проект Styx</a>
 		<ul class="nav navbar-nav user-panel-nav">
 			<li class="nav-item">
 				<button class="btn btn-dark user-panel-button" type="button" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Новый проект">
@@ -22,10 +22,10 @@
 					<img class="user-avatar" width="21" height="21" loading="lazy" src="{{ gravatar_avatar_url(user.email, 21) }}">
 				</button>
 				<ul class="dropdown-menu dropdown-menu-sm-end" aria-labelledby="userDropdownMenuBUtton">
-					<h6 class="dropdown-header">{{ user.username }}</h6>
+					<a class="dropdown-item" href="{{ url_for('.user_panel', username=user.username) }}">{{ user.username }}</a>
 					<div class="dropdown-divider"></div>
 					<li><a class="dropdown-item" href="{{ url_for('main.user_settings', username=user.username) }}">Настройки</a></li>
-					<li><a class="dropdown-item" href="#">Выйти</a></li>
+					<li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
 				</ul>
 			</li>
 		</ul>
