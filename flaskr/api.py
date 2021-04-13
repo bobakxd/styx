@@ -512,4 +512,4 @@ class GraphVisualization(Resource):
 
 api.add_resource(UserSettings, '/<string:username>/settings', endpoint='user_settings_resource')
 api.add_resource(ProjectRoot, '/<string:username>/<string:project_name>', endpoint='project_root_resource')
-
+api.add_resource(Webhook, '/<string:username>/<string:project_name>/webhook/github', endpoint='webhook_resource')

@@ -1,0 +1,6 @@
+{% extends "user_panel/project.html" %}
+{% block tree_container %}
+<h3 class="mb-3">Веб-хук не подключен</h3>
+<p class="mb-3">Веб-хук проекта не подключен к репозиторию на Github. Для того, чтобы подключить веб-хук необходимо указать следующий адрес в настройках репозитория:</p>
+<input class="w-100 mb-3"  type="text" readonly="readonly" value="{{ url_for('api.webhook_resource', username=user.username, project_name=project.project_name) }}">
+{% endblock %}

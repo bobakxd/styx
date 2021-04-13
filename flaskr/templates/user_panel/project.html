@@ -1,7 +1,7 @@
 {% extends "user_panel/index.html" %}
 {% block title %}{{ user.username }} - {{ project.project_name }}{% endblock %}
 {% block content %}
-<div class="border-bottom project-container">
+<div class="project-container">
 	<div class="container py-3">
 		<section>
 			<div class="border-bottom">
@@ -45,6 +45,7 @@
 			<p class="project-description">
 				{{ project.description }}
 			</p>
+			{% block tree_container %}
 			<div class="tree-container">
 				<div class="table-holder border rounded-2">
 				<table class="table table-hover m-0">
@@ -77,6 +78,7 @@
 				</table>
 				</div>
 			</div>
+			{% endblock %}
 			{% endblock %}
 		</section>
 	</div>

@@ -5,6 +5,8 @@ from flask import Blueprint
 from flask import render_template
 from flask_login import login_required
 from flask import abort
+from flask import redirect
+from flask import url_for
 import hashlib
 from flaskr.models import User
 from flaskr.models import Project
@@ -74,6 +76,10 @@ def dir_path(d):
     для директории *d*
     """
     path=''
+
+    if not d:
+        return path
+
     while True:
         if not d.dir_name:
             #path = '/' + path
@@ -166,6 +172,11 @@ def project(username, project_name, path=None):
         d = Directory.query.filter_by(
                 dir_name=None,
                 project_id=user_project.id).first()
+
+    if not d:
+        return render_template('user_panel/no_webhook.html',
+                user=user, gravatar_avatar_url=gravatar_avatar_url,
+                project=user_project, project_dir=None)
             
     return render_template('user_panel/project.html', 
             user=user, gravatar_avatar_url=gravatar_avatar_url, 
@@ -281,4 +292,28 @@ def index():
     index.html.
     """
     return render_template('index.html')
+
+
+@main.route('/<username>/new_project', methods=['GET', 'POST'])
+@login_required
+def create_project(username):
+    user = User.query.filter_by(
+            username=username).first()
+
+    if request.method == 'POST':
+        project_name = request.form['name']
+        project_desc = request.form['description']
+
+        project = Project(user_id=user.id,
+                project_name=project_name,
+                description=project_desc)
+        db.session.add(project)
+        db.session.commit()
+
+        return redirect(url_for('.project', username=user.username,
+            project_name=project.project_name))
+
+    return render_template('user_panel/create_project.html',
+            user=user, projects=None,
+            gravatar_avatar_url=gravatar_avatar_url)
 
