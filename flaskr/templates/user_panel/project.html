@@ -57,7 +57,12 @@
 						{% for d in project_dir.child_dirs %}
 						<tr>
 							<td>
-								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=d|dir_path, type='dir') }}">{{ d.dir_name }}</a>
+								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=d|dir_path, type='dir') }}">
+									<span class="material-icons project-folder-ico">
+										folder
+									</span>
+									{{ d.dir_name }}
+								</a>
 							</td>
 						</tr>
 						{% endfor %}
