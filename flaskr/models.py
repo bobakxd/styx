@@ -22,6 +22,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     #: username (*str*) - имя пользователя
     username = db.Column(db.String(80), unique=True, nullable=False)
+    #: fullname (*str*) - полное имя пользователя
+    fullname = db.Column(db.String(80))
     #: email (*str*) - email пользователя
     email = db.Column(db.String(120), unique=True, nullable=False)
     #: passw_hash (*str*) - пароль пользователя, хранится как хеш SHA-256 
@@ -31,7 +33,6 @@ class User(db.Model):
     registration_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     #: projects (*list*) - атрибут для задания связи один-ко-многим, список моделей проектов :class:`Project` пользователя
     projects = db.relationship('Project', lazy=True, backref='user')
-
 
     def is_active(self):
         """Возвращает всегда True, т.к. все пользователи активны."""

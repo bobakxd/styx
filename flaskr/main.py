@@ -74,7 +74,7 @@ def user_panel(username):
             gravatar_avatar_url=gravatar_avatar_url)
 
 
-@main.route('/<username>/settings')
+@main.route('/<username>/settings', methods=['GET', 'POST'])
 @login_required
 def user_settings(username):
     """Представление (view) с панелью настроек пользователя.
@@ -86,6 +86,17 @@ def user_settings(username):
     """
     user = User.query.filter_by(
             username=username).first()
+
+    if request.method == 'POST':
+        if request.form['fullname']:
+            user.fullname = request.form['fullname']
+            flash('Полное имя пользователя было успешно изменено', 'success')
+        else:
+            user.fullname = None
+            flash('Полное имя пользователя было удалено', 'warning')
+
+        db.session.commit()
+
     return render_template('user_panel/settings.html', 
             user=user, gravatar_avatar_url=gravatar_avatar_url)
 

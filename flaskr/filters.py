@@ -70,7 +70,7 @@ def pretty_date(time=False):
         if second_diff < 3600:
             return str(round(second_diff / 60)) + " минут назад"
         if second_diff < 7200:
-            return "an hour ago"
+            return "час назад"
         if second_diff < 86400:
             return str(round(second_diff / 3600)) + " часов назад"
     if day_diff == 1:

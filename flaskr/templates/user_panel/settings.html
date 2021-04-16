@@ -18,6 +18,24 @@
 		<div class="p-3 col-sm-9 col-12">
 			{% block settings_section %}
 			<h3>Профиль</h3>
+			{% with messages = get_flashed_messages(with_categories=True) %}
+				{% if messages %}
+					{% for c, m in messages %}
+					<div class="alert alert-{{ c }}">{{ m }}</div>
+					{% endfor %}
+				{% endif %}
+			{% endwith %}
+			<form action="" method="POST">
+				<div class="mb-3">
+					<label for="userId" class="form-label">ID Пользователя</label>
+					<input type="text" value="{{ user.id }}" class="form-control" id="userId" readonly="readonly" name="id">
+				</div>
+				<div class="mb-3">
+					<label for="userFullName" class="form-label">Полное имя</label>
+					<input type="text" value="{{ user.fullname|default('', True) }}" class="form-control" id="userFullName" name="fullname" placeholder="Введите полное имя...">
+				</div>
+				<button type="submit" class="btn btn-primary">Обновить настройки профиля</button>
+			</form>
 			{% endblock %}
 		</div>
 	</div>
