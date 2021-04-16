@@ -16,6 +16,7 @@
 		{{ file.file_name }}
 	</h1>
 	<p class="mb-0">ID файла: {{ file.id }}</p>
+	<p class="mb-0">Время последнего обновления: {{ file.update_time|time_format }}</p>
 </div>
 <div class="file-details border rounded">
 	<div class="file-details-header border-bottom p-2 d-flex align-items-center">

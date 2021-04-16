@@ -21,7 +21,7 @@
 	background: #fff;
 }
 
-.user-settings-title img, h2 {
+.user-settings-title img ~ h2 {
 	display: inline-block;
 }
 

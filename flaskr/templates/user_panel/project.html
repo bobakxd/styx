@@ -52,6 +52,7 @@
 					<thead class="table-secondary">
 						<tr>
 							<th class="col">Имя файла или директории</th>
+							<th class="col text-end">Время последнего обновления</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -65,12 +66,18 @@
 									{{ d.dir_name }}
 								</a>
 							</td>
+							<td class="text-end">
+								{{ d.update_time|pretty_date }}
+							</td>
 						</tr>
 						{% endfor %}
 						{% for f in project_dir.files %}
 						<tr>
 							<td>
 								<a href="{{ url_for('.project', username=user.username, project_name=project.project_name, path=project_dir|dir_path+f.file_name, type='file') }}">{{ f.file_name }}</a>
+							</td>
+							<td class="text-end">
+								{{ f.update_time|pretty_date }}
 							</td>
 						</tr>
 						{% endfor %}
