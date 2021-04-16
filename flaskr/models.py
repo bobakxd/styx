@@ -181,6 +181,8 @@ class Directory(db.Model):
             cascade='all, delete', 
             passive_deletes=True
             )
+    # update_time (*DateTime*) - время последнего обновления директории
+    update_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<Directory %r>' % self.dir_name
@@ -205,6 +207,8 @@ class File(db.Model):
     #: graph_visualizations (*list*) - атрибут для задания связи один-ко-многим, графовая визуализация файла :class:`GraphVisualization`
     graph_visualizations = db.relationship('GraphVisualization', lazy=True, backref='file', cascade='all, delete', passive_deletes=True)
     #: parent_dir (:class:`Directory`) - ссылка на модель директории-родителя
+    # update_time (*DateTime*) - время последнего обновления файла
+    update_time = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
 
     def __repr__(self):
         return '<File %r>' % self.file_name

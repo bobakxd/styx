@@ -294,8 +294,9 @@ def _traverse(tree, parent_dir, project_id, callback):
     for o in tree:
         obj = callback(o, parent_dir, project_id)
 
-        if o['type'] == 'tree':
-            if obj:
+        if obj:
+            obj.update_time = datetime.datetime.utcnow()
+            if o['type'] == 'tree':
                 response = requests.get(o['url'])
                 body = response.json()
                 _traverse(body['tree'], obj, project_id, callback)
