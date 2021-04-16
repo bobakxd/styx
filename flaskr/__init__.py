@@ -2,6 +2,7 @@ from flask import Flask
 from flaskr.main import main
 from flaskr.auth import auth
 from flaskr.api import api_bp
+from flaskr.filters import filters
 from flaskr.auth import login_manager
 from flaskr.models import db
 from sqlalchemy.engine import Engine
@@ -29,6 +30,7 @@ def init_db():
 app.register_blueprint(main)
 app.register_blueprint(auth)
 app.register_blueprint(api_bp)
+app.register_blueprint(filters)
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):

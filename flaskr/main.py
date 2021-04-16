@@ -54,42 +54,6 @@ def gravatar_avatar_url(email, size):
             .format(hash=avatar_hash, px=size)
 
 
-@main.app_template_filter()
-def date_format(value):
-    """Фильтр, который преобразовывает DateTime в строку формата 
-    %-d %B, %Y г.
-    """
-    return value.strftime('%-d %B, %Y г.') 
-
-
-@main.app_template_filter()
-def time_format(value):
-    """Фильтр, который преобразовывает DateTime в строку формата 
-    %-d %B в %H:%M
-    """
-    return value.strftime('%-d %B в %H:%M') 
-
-
-@main.app_template_filter()
-def dir_path(d):
-    """Фильтр, который возвращает путь относительно корня проекта 
-    для директории *d*
-    """
-    path=''
-
-    if not d:
-        return path
-
-    while True:
-        if not d.dir_name:
-            #path = '/' + path
-            return path
-        else:
-            path = d.dir_name + '/' + path
-
-        d = d.dir_parent
-
-
 @main.route('/<username>')
 @login_required
 def user_panel(username):
