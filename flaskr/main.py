@@ -247,15 +247,32 @@ def user_settings_tokens(username):
     created_jwt = None
 
     if request.method == 'POST':
-        if functools.reduce(lambda prev, el: prev and bool(el), request.form.values()):
-            expire_date = datetime.strptime(request.form['expire_date'], '%Y-%m-%d')
-            now = datetime.now()
-            created_jwt = user.encode_auth_token(expire_date - now)
-            token = Token(user_id=user.id, token=created_jwt, name=request.form['token_name'], iat=now, exp=expire_date)
-            db.session.add(token)
+        if request.form['action'] == 'create_token':
+	        if functools.reduce(lambda prev, el: prev and bool(el), request.form.values()):
+	            last_token = Token.query.order_by(Token.id.desc()).first()
+	
+	            if last_token:
+	                last_token_id = last_token.id
+	            else:
+	                last_token_id = 0 
+	
+	            expire_date = datetime.strptime(request.form['expire_date'], '%Y-%m-%d')
+	            now = datetime.now()
+	            created_jwt = user.encode_auth_token(last_token_id + 1,
+	                    expire_date - now)
+	            token = Token(user_id=user.id, token=created_jwt, name=request.form['token_name'], iat=now, exp=expire_date)
+	            db.session.add(token)
+	            db.session.commit()
+        elif request.form['action'] == 'revoke_token':
+            token_id = request.form['token_id']
+            token = Token.query.filter_by(id=token_id).first()
+            token.is_revoked = True
             db.session.commit()
+        else:
+            abort(400, 'Неверное значение параметра action')
 
-    tokens = Token.query.filter_by(user_id=user.id).all()
+    tokens = Token.query.filter_by(user_id=user.id, 
+            is_revoked=False).all()
 
     return render_template('user_panel/settings_tokens.html', 
             user=user, gravatar_avatar_url=gravatar_avatar_url, tokens=tokens, created_jwt=created_jwt)

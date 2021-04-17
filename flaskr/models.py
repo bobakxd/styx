@@ -64,9 +64,10 @@ class User(db.Model):
         """
         return False
 
-    def encode_auth_token(self, time_delta):
+    def encode_auth_token(self, token_id, time_delta):
         """Создает и шифрует JSON веб-токен пользователя.
 
+        :param int token_id: идентификатор токена
         :param time_delta: длительность действия токена
         :type time_delta: :class:`datetime.datetime`
         :returns: JSON веб-токен (JWT) в base64 формате
@@ -74,6 +75,7 @@ class User(db.Model):
         """
         try:
             payload = {
+                    'id': token_id,
                     'exp': datetime.datetime.utcnow() + time_delta,
                     'iat': datetime.datetime.utcnow(),
                     'sub': self.username
@@ -98,7 +100,7 @@ class User(db.Model):
         try:
             payload = jwt.decode(auth_token, 
                     current_app.config['SECRET_KEY'], algorithms=['HS256'])
-            return (True, payload['sub'])
+            return (True, payload)
         except jwt.ExpiredSignatureError:
             return (False, 'Действие подписи закончилось. Пожалуйста, сгенерируете новый токен заново.')
         except jwt.InvalidTokenError:
@@ -124,6 +126,8 @@ class Token(db.Model):
     iat = db.Column(db.DateTime, nullable=False, default=datetime.datetime.utcnow)
     # exp (*DateTime*) - дата окончания действия токена
     exp = db.Column(db.DateTime, nullable=False)
+    # is_revoked (*bool*) - признак аннулирования токена
+    is_revoked = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return '<Token %r [ %r ]>' % (self.id, self.token)

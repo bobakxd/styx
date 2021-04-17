@@ -1,4 +1,5 @@
 import flask
+from flask import current_app
 
 filters = flask.Blueprint('filters', __name__)
 
@@ -8,6 +9,38 @@ def date_format(value):
     %-d %B, %Y г.
     """
     return value.strftime('%-d %B, %Y г.') 
+
+
+@filters.app_template_filter()
+def token_exp_date_format(value):
+    """Фильтр, который преобразовывает DateTime в строку формата 
+    %-d %B, %Y г. в случае, если действие токена не закончилось.
+
+    Если действие токена закончилось, то возвращается строка 
+    'Закончился'.
+    """
+    from datetime import datetime
+    now = datetime.utcnow()
+    if now < value:
+        return value.strftime('%-d %B, %Y г.') 
+    else:
+        return 'Закончился'
+
+
+@filters.app_template_filter()
+def token_exp_date_color(value):
+    """Фильтр, который преобразовывает DateTime в цвет, который 
+    используется для отображения даты.
+
+    'dark' в случае, если действие токена не закончилось.
+    'danger' в случае, если действие токена закончилось.
+    """
+    from datetime import datetime
+    now = datetime.utcnow()
+    if now < value:
+        return 'dark'
+    else:
+        return 'danger'
 
 
 @filters.app_template_filter()

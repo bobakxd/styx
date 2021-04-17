@@ -9,6 +9,7 @@ from flaskr.models import User
 from flaskr.models import Project
 from flaskr.models import Directory
 from flaskr.models import File
+from flaskr.models import Token
 import flaskr.models
 from flask_restx import fields
 from flask_restx import reqparse
@@ -100,8 +101,13 @@ def token_required(f):
             return {'message': 'Необходим токен для выполнения операции.'}, 401
 
         is_success, result = User.decode_auth_token(token) 
-        if is_success and result == kwargs['username']:
-            return f(*args, **kwargs)
+        if is_success and result['sub'] == kwargs['username']:
+            token = Token.query.filter_by(id=result['id']).first()
+            
+            if not token.is_revoked:
+                return f(*args, **kwargs)
+            else:
+                return {'message': 'Токен был аннулирован.'}, 401
         elif is_success:
             return {'message': 'Необходим токен владельца проекта.'}, 401
         else:

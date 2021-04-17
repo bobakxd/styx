@@ -36,6 +36,7 @@
 			<label for="expiresAt">Срок действия заканчивается в</label>
 			<input type="date" class="form-control rounded-0" id="expiresAt" name="expire_date">
 		</div>
+		<input type="hidden" name="action" value="create_token">
 		<button type="submit" class="btn btn-primary">Создать токен</button>
 	</form>
 </section>
@@ -47,17 +48,25 @@
 				<th scope="col">Название токена</th>
 				<th scope="col">Создан</th>
 				<th scope="col">Заканчивается</th>
+				<th scope="col"></th>
 			</tr>
 		</thead>
 		<tbody>
 		{% for t in tokens %}
-			<tr>
+			<tr id="token{{ t.id }}">
 				<td>{{ t.name }}</td>
 				<td>{{ t.iat | date_format }}</td>
-				<td>{{ t.exp | date_format }}</td>
+				<td class="text-{{ t.exp|token_exp_date_color }}">{{ t.exp|token_exp_date_format }}</td>
+				<td>
+					<button type="button" class="btn btn-danger" onclick="revokeTokenRequest('{{ user.username }}', {{ t.id }}, () => deleteTokenRow({{ t.id }}))">Аннулировать</button>
+				</td>
 			</tr>
 		{% endfor %}
 		</tbody>
 	</table>
 </section>
+{% endblock %}
+{% block js_includes %}
+{{ super() }}
+<script src="{{ url_for('.static', filename='js/settings.js') }}"></script>
 {% endblock %}
