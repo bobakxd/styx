@@ -276,12 +276,12 @@ class Webhook(Resource):
         return { 'message': 'К проекту не подключен веб-хук в данный момент.' }, 406
     
     post_model = api.schema_model('PostModel', {
-        'required': ['hook_id'],
+        #'required': ['hook_id'],
         'properties': {
-            'hook_id': {
-                'description': 'Идентификатор веб-хука',
-                'type': 'integer'
-            },
+            #'hook_id': {
+            #    'description': 'Идентификатор веб-хука',
+            #    'type': 'integer'
+            #},
             'after': {
                 'description': 'SHA самого последнего коммита после выполнения push в репозитории',
                 'type': 'string'
@@ -313,6 +313,7 @@ class Webhook(Resource):
     @api.response(403, 'Хук уже подключен')
     @api.response(406, 'Неправильные заголовки в запросе')
     @api.param('X-GitHub-Event', 'Название события, которое запустило веб-хук', _in='header', required=True)
+    @api.param('X-GitHub-Hook-ID', 'Идентификатор веб-хука', _in='header', required=True)
     @api.expect(post_model, validate=True)
     def post(self, username, project_name): 
         """Обрабатывает разные события Github веб-хука.
@@ -330,9 +331,11 @@ class Webhook(Resource):
             return {'message': 'Проекта с указанным названием не существует.'}, 404
 
         event = request.headers['X-GitHub-Event']        
+        hook_id = request.headers['X-GitHub-Hook-ID']
         if event == 'ping':
             if not project.hook_id:
-                project.hook_id = api.payload['hook_id']
+                #project.hook_id = api.payload['hook_id']
+                project.hook_id = hook_id
                 db.session.commit()
                 commit = webhook.get_commit_of_default_branch(
                         api.payload['repository'])
@@ -343,7 +346,7 @@ class Webhook(Resource):
                 return {'message': 'Хук уже подключен к проекту.'}, 403
 
         if event == 'push':
-            if project.hook_id:
+            if project.hook_id and project.hook_id == int(hook_id):
                 after_commit = webhook.get_commit(
                         api.payload['repository']['git_commits_url'], 
                         api.payload['after']
@@ -353,7 +356,7 @@ class Webhook(Resource):
 
                 return {'message': 'Событие push успешно обработано.', 'hook_id': project.hook_id, 'self-url': self._get_self_url(username, project_name)}, 200
             else:
-                return {'message': 'Хук не подключен к проекту.'}, 403
+                return {'message': 'Хук не подключен к проекту или был отправлено событие неверного веб-хука.'}, 403
 
     def _get_self_url(self, username, project_name):
         return '/{username}/{project_name}/webhook/github'.format(username=username, project_name=project_name) 
