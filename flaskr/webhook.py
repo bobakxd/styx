@@ -83,7 +83,7 @@ def decode_content(content, encoding):
     return ''.join([decode_func[encoding](l) for l in lines])
 
 
-def _add_metrics_for_file(tree_obj, f):
+def _add_metrics_for_file(tree_obj, f, is_updating=False):
     """Добавляет метрики для файла из дерева репозитория.
 
     Подсчитывает метрики и строит визуализации для файла *f*. Создает модели метрик (:class:`flaskr.models.RawMetrics`, :class:`flaskr.models.HalsteadMetrics`) и модели визуализаций (:class:`flaskr.models.GraphVisualization`) для файла *f*.
@@ -99,41 +99,71 @@ def _add_metrics_for_file(tree_obj, f):
         content = decode_content(
                 blob_body['content'], blob_body['encoding'])
         calc_raw_metrics = raw.analyze_code(tree_obj['path'], content)
-        raw_metrics = RawMetrics(
-                loc=calc_raw_metrics.loc,
-                lloc=calc_raw_metrics.lloc,
-                ploc=calc_raw_metrics.ploc,
-                comments=calc_raw_metrics.comments,
-                blanks=calc_raw_metrics.blanks,
-                file_id=f.id
-        )
-        db.session.add(raw_metrics)
+
+        if not is_updating:
+            raw_metrics = RawMetrics(
+                    loc=calc_raw_metrics.loc,
+                    lloc=calc_raw_metrics.lloc,
+                    ploc=calc_raw_metrics.ploc,
+                    comments=calc_raw_metrics.comments,
+                    blanks=calc_raw_metrics.blanks,
+                    file_id=f.id
+                    )
+            db.session.add(raw_metrics)
+        else:
+            raw_metrics = RawMetrics.query.filter_by(file_id=f.id).first()
+            raw_metrics.loc = calc_raw_metrics.loc
+            raw_metrics.lloc = calc_raw_metrics.lloc
+            raw_metrics.ploc = calc_raw_metrics.ploc
+            raw_metrics.comments = calc_raw_metrics.comments
+            raw_metrics.blanks = calc_raw_metrics.blanks
 
         calc_halstead_metrics = halstead.analyze_code(tree_obj['path'], 
                 content)
-        halstead_metrics = HalsteadMetrics(
-                unique_n1=calc_halstead_metrics.n1,
-                unique_n2=calc_halstead_metrics.n2,
-                total_n1=calc_halstead_metrics.N1,
-                total_n2=calc_halstead_metrics.N2,
-                file_id=f.id
-        )
-        db.session.add(halstead_metrics)
 
-        #cpg_client = CPGQLSClient('localhost:{port}'.format(
-        #    port=current_app.config['CPG_SERVER_PORT']
-        #), event_loop=get_set_event_loop())
+        if not is_updating:
+            halstead_metrics = HalsteadMetrics(
+                    unique_n1=calc_halstead_metrics.n1,
+                    unique_n2=calc_halstead_metrics.n2,
+                    total_n1=calc_halstead_metrics.N1,
+                    total_n2=calc_halstead_metrics.N2,
+                    file_id=f.id
+                    )
+            db.session.add(halstead_metrics)
+        else:
+            halstead_metrics = HalsteadMetrics.query.filter_by(
+                    file_id=f.id).first()
+            halstead_metrics.total_n1 = calc_halstead_metrics.N1
+            halstead_metrics.total_n2 = calc_halstead_metrics.N2
+            halstead_metrics.unique_n1 = calc_halstead_metrics.n1
+            halstead_metrics.unique_n2 = calc_halstead_metrics.n2
+
         current_app.logger.info("file: ")
         current_app.logger.info(tree_obj['path'])
         cfgs = graph.cfg_for_code(content, tree_obj['path'])
         for func_name, dot in cfgs.items():
-            graph_vis = GraphVisualization(
-                    graph_type=GraphType.CFG,
-                    func_name=func_name,
-                    graph_dot=dot,
-                    file_id=f.id
-            )
-            db.session.add(graph_vis)
+            if not is_updating:
+                graph_vis = GraphVisualization(
+                        graph_type=GraphType.CFG,
+                        func_name=func_name,
+                        graph_dot=dot,
+                        file_id=f.id
+                        )
+                db.session.add(graph_vis)
+            else:
+                old_vis = GraphVisualization.query.filter_by(file_id=f.id,
+                        func_name=func_name)
+
+                if old_vis:
+                    old_vis.delete()
+                
+                graph_vis = GraphVisualization(
+                        graph_type=GraphType.CFG,
+                        func_name=func_name,
+                        graph_dot=dot,
+                        file_id=f.id
+                        )
+                db.session.add(graph_vis)
 
 
 def _add_tree_obj_to_db(o, parent_dir, project_id):
@@ -157,6 +187,7 @@ def _add_tree_obj_to_db(o, parent_dir, project_id):
         db.session.add(f)
         db.session.flush()
         _add_metrics_for_file(o, f)
+        f.update_time = datetime.datetime.utcnow()
 
         return f
     
@@ -166,6 +197,8 @@ def _add_tree_obj_to_db(o, parent_dir, project_id):
                 dir_parent=parent_dir,
                 git_hash=o['sha'])
         db.session.add(d)
+        d.update_time = datetime.datetime.utcnow()
+
         return d
 
     return None
@@ -196,10 +229,12 @@ def _update_tree_obj_in_db(o, parent_dir, project_id):
             db.session.add(f)
             db.session.flush()
             _add_metrics_for_file(o, f)
+            f.update_time = datetime.datetime.utcnow()
 
         if o['sha'] != f.git_hash:
-            _add_metrics_for_file(o, f)
+            _add_metrics_for_file(o, f, is_updating=True)
             f.git_hash = o['sha']
+            f.update_time = datetime.datetime.utcnow()
 
         return f
 
@@ -216,9 +251,11 @@ def _update_tree_obj_in_db(o, parent_dir, project_id):
                 dir_parent=parent_dir,
                 git_hash=o['sha'])
             db.session.add(d)
+            d.update_time = datetime.datetime.utcnow()
             return d
         
         if o['sha'] != d.git_hash:
+            d.update_time = datetime.datetime.utcnow()
             return d
 
         return None
@@ -295,7 +332,6 @@ def _traverse(tree, parent_dir, project_id, callback):
         obj = callback(o, parent_dir, project_id)
 
         if obj:
-            obj.update_time = datetime.datetime.utcnow()
             if o['type'] == 'tree':
                 response = requests.get(o['url'])
                 body = response.json()
